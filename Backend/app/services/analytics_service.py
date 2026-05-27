@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
-from app.models.order import Order, OrderItem
-from app.models.product import Product
+from typing import List, Any
+from bson import ObjectId
 from app.schemas.analytics import (
     DashboardAnalyticsResponse,
     RevenueSummary,
@@ -13,17 +11,26 @@ from app.schemas.analytics import (
 )
 
 class AnalyticsService:
-    async def get_dashboard_analytics(self, db: AsyncSession) -> DashboardAnalyticsResponse:
+    async def get_dashboard_analytics(self, db: Any) -> DashboardAnalyticsResponse:
         # 1. Calculate Revenue Summary
-        rev_res = await db.execute(
-            select(
-                func.sum(Order.total),
-                func.count(Order.id)
-            ).filter(Order.order_status == "completed")
-        )
-        row = rev_res.first()
-        total_rev = Decimal(str(row[0] or 0.00)) if row else Decimal("0.00")
-        total_orders = row[1] if row and row[1] else 0
+        pipeline = [
+            {"$match": {"order_status": "completed"}},
+            {"$group": {
+                "_id": None,
+                "total_revenue": {"$sum": "$total"},
+                "total_orders": {"$sum": 1}
+            }}
+        ]
+        cursor = db["orders"].aggregate(pipeline)
+        rev_res = await cursor.to_list(length=1)
+        
+        if rev_res:
+            total_rev = Decimal(str(rev_res[0].get("total_revenue") or 0.00))
+            total_orders = rev_res[0].get("total_orders") or 0
+        else:
+            total_rev = Decimal("0.00")
+            total_orders = 0
+            
         avg_value = total_rev / Decimal(str(total_orders)) if total_orders > 0 else Decimal("0.00")
         
         rev_summary = RevenueSummary(
@@ -33,40 +40,52 @@ class AnalyticsService:
         )
 
         # 2. Calculate Order Status Statistics
-        stats_res = await db.execute(
-            select(Order.order_status, func.count(Order.id)).group_by(Order.order_status)
-        )
+        pipeline_stats = [
+            {"$group": {
+                "_id": "$order_status",
+                "count": {"$sum": 1}
+            }}
+        ]
+        cursor_stats = db["orders"].aggregate(pipeline_stats)
+        stats_res = await cursor_stats.to_list(length=100)
+        
         stats_dict = {"pending": 0, "preparing": 0, "completed": 0, "cancelled": 0}
-        for status, count in stats_res.all():
+        for item in stats_res:
+            status = item["_id"]
             if status in stats_dict:
-                stats_dict[status] = count
+                stats_dict[status] = item["count"]
         
         order_stats = OrderStats(**stats_dict)
 
         # 3. Calculate Top Selling Items
-        top_res = await db.execute(
-            select(
-                Product.id,
-                Product.name,
-                func.sum(OrderItem.quantity).label("qty"),
-                func.sum(OrderItem.subtotal).label("rev")
-            )
-            .join(OrderItem, OrderItem.product_id == Product.id)
-            .join(Order, Order.id == OrderItem.order_id)
-            .filter(Order.order_status == "completed")
-            .group_by(Product.id, Product.name)
-            .order_by(func.sum(OrderItem.quantity).desc())
-            .limit(5)
-        )
+        completed_orders = await db["orders"].find({"order_status": "completed"}).to_list(length=10000)
+        order_ids = [str(o["_id"]) for o in completed_orders]
+        
+        # Fetch matching order items
+        oi_docs = await db["order_items"].find({"order_id": {"$in": order_ids}}).to_list(length=10000)
+        
+        # Group by product_id
+        from collections import defaultdict
+        sales = defaultdict(lambda: {"qty": 0, "rev": Decimal("0.00")})
+        for oi in oi_docs:
+            pid = oi["product_id"]
+            sales[pid]["qty"] += int(oi["quantity"])
+            sales[pid]["rev"] += Decimal(str(oi["subtotal"]))
+            
+        # Sort and take top 5
+        sorted_sales = sorted(sales.items(), key=lambda x: x[1]["qty"], reverse=True)[:5]
         
         top_items = []
-        for pid, name, qty, rev in top_res.all():
+        for pid, data in sorted_sales:
+            prod_query = ObjectId(pid) if isinstance(pid, str) and ObjectId.is_valid(pid) else pid
+            prod = await db["products"].find_one({"_id": prod_query})
+            name = prod["name"] if prod else "Unknown Product"
             top_items.append(
                 TopSellingItem(
-                    product_id=pid,
+                    product_id=str(pid),
                     product_name=name,
-                    quantity_sold=int(qty or 0),
-                    revenue_generated=Decimal(str(rev or 0.00))
+                    quantity_sold=data["qty"],
+                    revenue_generated=data["rev"]
                 )
             )
 
@@ -74,17 +93,11 @@ class AnalyticsService:
         today = datetime.now(timezone.utc).date()
         start_date = datetime.combine(today - timedelta(days=6), datetime.min.time())
         
-        history_res = await db.execute(
-            select(Order.created_at, Order.total)
-            .filter(
-                and_(
-                    Order.order_status == "completed",
-                    Order.created_at >= start_date
-                )
-            )
-        )
-        
-        orders_data = history_res.all()
+        cursor_history = db["orders"].find({
+            "order_status": "completed",
+            "created_at": {"$gte": start_date}
+        })
+        orders_data = await cursor_history.to_list(length=10000)
         
         # Populate dict with all 7 days
         daily_map = {}
@@ -92,7 +105,15 @@ class AnalyticsService:
             d = today - timedelta(days=6 - i)
             daily_map[d.strftime("%Y-%m-%d")] = {"revenue": Decimal("0.00"), "count": 0}
             
-        for created_at, total in orders_data:
+        for order in orders_data:
+            created_at = order["created_at"]
+            total = order["total"]
+            # Handle datetime if it's string or datetime
+            if isinstance(created_at, str):
+                try:
+                    created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                except ValueError:
+                    continue
             day_str = created_at.strftime("%Y-%m-%d")
             if day_str in daily_map:
                 daily_map[day_str]["revenue"] += Decimal(str(total))

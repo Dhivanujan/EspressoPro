@@ -14,7 +14,7 @@ class CategoryUpdate(BaseModel):
     description: Optional[str] = None
 
 class CategoryResponse(CategoryBase):
-    id: int
+    id: str
     created_at: datetime
     updated_at: datetime
 

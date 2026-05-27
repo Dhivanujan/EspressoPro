@@ -6,12 +6,12 @@ from app.schemas.product import ProductResponse
 from app.schemas.customer import CustomerResponse
 
 class OrderItemCreate(BaseModel):
-    product_id: int
+    product_id: str
     quantity: int = Field(..., gt=0)
 
 class OrderItemResponse(BaseModel):
-    id: int
-    product_id: int
+    id: str
+    product_id: str
     quantity: int
     unit_price: Decimal
     subtotal: Decimal
@@ -20,7 +20,7 @@ class OrderItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class OrderCreate(BaseModel):
-    customer_id: Optional[int] = None
+    customer_id: Optional[str] = None
     customer_name: Optional[str] = None
     coupon_code: Optional[str] = None
     order_type: str = Field("takeaway", pattern="^(dine_in|takeaway)$")
@@ -30,11 +30,11 @@ class OrderStatusUpdate(BaseModel):
     order_status: str = Field(..., pattern="^(pending|preparing|completed|cancelled)$")
 
 class OrderResponse(BaseModel):
-    id: int
+    id: str
     order_number: str
-    cashier_id: int
-    customer_id: Optional[int] = None
-    coupon_id: Optional[int] = None
+    cashier_id: str
+    customer_id: Optional[str] = None
+    coupon_id: Optional[str] = None
     customer_name: Optional[str] = None
     order_type: str
     order_status: str

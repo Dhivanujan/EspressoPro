@@ -15,11 +15,8 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
 
     # Database
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "change-me"
-    POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
-    POSTGRES_DB: str = "coffeeshop_pos"
+    MONGODB_URL: str = "mongodb://localhost:27017"
+    MONGODB_DB: str = "coffeeshop_pos"
 
     # Security
     JWT_SECRET_KEY: str = "change-me"
@@ -45,13 +42,5 @@ class Settings(BaseSettings):
             except Exception:
                 return [v]
         return v
-
-    @property
-    def DATABASE_URL(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-
-    @property
-    def ASYNC_DATABASE_URL(self) -> str:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
 settings = Settings()

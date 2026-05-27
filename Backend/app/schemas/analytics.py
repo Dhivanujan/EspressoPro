@@ -13,7 +13,7 @@ class SalesDataPoint(BaseModel):
     order_count: int
 
 class TopSellingItem(BaseModel):
-    product_id: int
+    product_id: str
     product_name: str
     quantity_sold: int
     revenue_generated: Decimal

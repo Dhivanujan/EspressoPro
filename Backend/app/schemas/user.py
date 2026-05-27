@@ -18,7 +18,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(None, min_length=6, max_length=100)
 
 class UserResponse(UserBase):
-    id: int
+    id: str
     created_at: datetime
     updated_at: datetime
 

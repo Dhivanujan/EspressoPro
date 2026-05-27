@@ -9,8 +9,8 @@ class PaymentCreate(BaseModel):
     transaction_reference: Optional[str] = None
 
 class PaymentResponse(BaseModel):
-    id: int
-    order_id: int
+    id: str
+    order_id: str
     payment_method: str
     amount_paid: Decimal
     change_amount: Decimal

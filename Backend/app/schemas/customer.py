@@ -15,7 +15,7 @@ class CustomerUpdate(BaseModel):
     loyalty_points: Optional[int] = Field(None, ge=0)
 
 class CustomerResponse(CustomerBase):
-    id: int
+    id: str
     loyalty_points: int
     created_at: datetime
     updated_at: datetime

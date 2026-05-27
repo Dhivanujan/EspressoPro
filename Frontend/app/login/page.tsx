@@ -3,10 +3,29 @@
 "use client";
 
 import { useState } from "react";
-import { Coffee, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
+import { Coffee, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+import { useAuth } from "../../lib/auth";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { login, loading } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !password) {
+      setError("Please fill in both fields");
+      return;
+    }
+    setError("");
+    try {
+      await login(username, password);
+    } catch (err: any) {
+      setError(err.message || "Invalid username or password. Please try again.");
+    }
+  };
 
   return (
     <div
@@ -37,13 +56,20 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Error Alert */}
+        {error && (
+          <div className="bg-red-50 text-red-600 text-sm p-4 rounded-xl border border-red-100 font-medium">
+            {error}
+          </div>
+        )}
+
         {/* Form */}
-        <form className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           
-          {/* Email */}
+          {/* Email / Username */}
           <div className="flex flex-col gap-2">
             <label className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
-              Email or Username
+              Username
             </label>
 
             <div className="relative">
@@ -53,8 +79,11 @@ export default function LoginPage() {
               />
 
               <input
-                type="email"
-                placeholder="manager@branch.com"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin or cashier"
+                disabled={loading}
                 className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 outline-none transition focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
               />
             </div>
@@ -69,6 +98,7 @@ export default function LoginPage() {
 
               <button
                 type="button"
+                onClick={() => alert("Please contact the administrator to reset your password.")}
                 className="text-sm text-[#82542a] hover:underline"
               >
                 Forgot Password?
@@ -83,7 +113,10 @@ export default function LoginPage() {
 
               <input
                 type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                disabled={loading}
                 className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-12 outline-none transition focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
               />
 
@@ -101,33 +134,44 @@ export default function LoginPage() {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
+              defaultChecked
               className="h-4 w-4 rounded border-gray-300 text-[#82542a] focus:ring-[#82542a]"
             />
 
             <label className="text-sm text-gray-600">
-              Keep me signed in for 30 days
+              Keep me signed in
             </label>
           </div>
 
           {/* Submit */}
           <button
             type="submit"
-            className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-[#170f0a] py-3 font-semibold text-white transition hover:opacity-90 active:scale-[0.98]"
+            disabled={loading}
+            className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-[#170f0a] py-3 font-semibold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
           >
-            Sign In
-            <ArrowRight size={18} />
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                Signing In...
+              </>
+            ) : (
+              <>
+                Sign In
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </form>
 
         {/* Footer */}
         <div className="border-t border-gray-200 pt-5 flex flex-col items-center gap-2">
           <p className="uppercase tracking-wider text-xs text-gray-500">
-            Don&apos;t have an account?
+            System Security
           </p>
 
-          <button className="font-semibold text-[#170f0a] hover:underline">
-            Contact System Administrator
-          </button>
+          <p className="text-xs text-gray-400 text-center">
+            Authorized Personnel Only. All activities are monitored and logged.
+          </p>
         </div>
       </div>
 

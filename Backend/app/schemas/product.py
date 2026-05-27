@@ -20,7 +20,7 @@ class IngredientUpdate(BaseModel):
     low_stock_threshold: Optional[float] = Field(None, ge=0.0)
 
 class IngredientResponse(IngredientBase):
-    id: int
+    id: str
     created_at: datetime
     updated_at: datetime
 
@@ -29,7 +29,7 @@ class IngredientResponse(IngredientBase):
 
 # Product Recipe Schemas
 class ProductIngredientBase(BaseModel):
-    ingredient_id: int
+    ingredient_id: str
     quantity_required: float = Field(..., gt=0.0)
 
 class ProductIngredientCreate(ProductIngredientBase):
@@ -43,7 +43,7 @@ class ProductIngredientResponse(ProductIngredientBase):
 
 # Product Schemas
 class ProductBase(BaseModel):
-    category_id: Optional[int] = None
+    category_id: Optional[str] = None
     name: str = Field(..., min_length=2, max_length=100)
     description: Optional[str] = None
     price: Decimal = Field(..., gt=0.0)
@@ -56,7 +56,7 @@ class ProductCreate(ProductBase):
     recipe: Optional[List[ProductIngredientCreate]] = []
 
 class ProductUpdate(BaseModel):
-    category_id: Optional[int] = None
+    category_id: Optional[str] = None
     name: Optional[str] = Field(None, min_length=2, max_length=100)
     description: Optional[str] = None
     price: Optional[Decimal] = Field(None, gt=0.0)
@@ -67,7 +67,7 @@ class ProductUpdate(BaseModel):
     recipe: Optional[List[ProductIngredientCreate]] = None
 
 class ProductResponse(ProductBase):
-    id: int
+    id: str
     created_at: datetime
     updated_at: datetime
     recipe_ingredients: List[ProductIngredientResponse] = []
