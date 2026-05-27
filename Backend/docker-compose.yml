@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: coffeeshop_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: coffeeshop_pos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d coffeeshop_pos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: coffeeshop_web
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=Coffee Shop POS
+      - APP_ENV=production
+      - DEBUG=false
+      - PORT=8000
+      - HOST=0.0.0.0
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=coffeeshop_pos
+      - JWT_SECRET_KEY=4eb84c2f6d2e61be843236e788bc5f22e03233c7f999db6bbfe88b776269b2d8
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=480
+      - ALLOWED_ORIGINS=["*"]
+      - SHOP_NAME=Daily Grind Coffee
+      - TAX_RATE=0.10
+      - LOYALTY_POINT_REWARD_RATE=0.10
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
