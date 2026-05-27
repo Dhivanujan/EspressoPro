@@ -16,13 +16,13 @@ class Settings(BaseSettings):
 
     # Database
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_PASSWORD: str = "change-me"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "coffeeshop_pos"
 
     # Security
-    JWT_SECRET_KEY: str = "4eb84c2f6d2e61be843236e788bc5f22e03233c7f999db6bbfe88b776269b2d8"
+    JWT_SECRET_KEY: str = "change-me"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
 
