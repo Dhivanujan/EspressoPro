@@ -33,7 +33,7 @@ def compile_cart_response(cart: Cart) -> dict:
         "total": round(total, 2)
     }
 
-async def fetch_cart_with_items(db: AsyncSession, cart_id: int, cashier_id: int) -> Cart:
+async def fetch_cart_with_items(db: AsyncSession, cart_id: str, cashier_id: str) -> Cart:
     res = await db.execute(
         select(Cart)
         .filter(Cart.id == cart_id, Cart.cashier_id == cashier_id)
@@ -79,7 +79,7 @@ async def list_cashier_carts(
 
 @router.get("/{cart_id}", response_model=CartResponse)
 async def get_single_cart(
-    cart_id: int,
+    cart_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -91,7 +91,7 @@ async def get_single_cart(
 
 @router.post("/{cart_id}/items", response_model=CartResponse)
 async def add_item_to_cart(
-    cart_id: int,
+    cart_id: str,
     item_in: CartItemCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -112,6 +112,7 @@ async def add_item_to_cart(
     
     if existing_item:
         existing_item.quantity += item_in.quantity
+        db.add(existing_item)
     else:
         new_item = CartItem(cart_id=cart_id, product_id=item_in.product_id, quantity=item_in.quantity)
         db.add(new_item)
@@ -124,8 +125,8 @@ async def add_item_to_cart(
 
 @router.put("/{cart_id}/items/{item_id}", response_model=CartResponse)
 async def update_cart_item(
-    cart_id: int,
-    item_id: int,
+    cart_id: str,
+    item_id: str,
     item_in: CartItemUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -141,6 +142,7 @@ async def update_cart_item(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cart item not found")
         
     item.quantity = item_in.quantity
+    db.add(item)
     await db.commit()
     
     updated_cart = await fetch_cart_with_items(db, cart_id, current_user.id)
@@ -148,8 +150,8 @@ async def update_cart_item(
 
 @router.delete("/{cart_id}/items/{item_id}", response_model=CartResponse)
 async def remove_cart_item(
-    cart_id: int,
-    item_id: int,
+    cart_id: str,
+    item_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -171,7 +173,7 @@ async def remove_cart_item(
 
 @router.delete("/{cart_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_cart(
-    cart_id: int,
+    cart_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

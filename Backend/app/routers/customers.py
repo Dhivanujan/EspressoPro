@@ -65,7 +65,7 @@ async def list_customers(
 
 @router.get("/{customer_id}", response_model=CustomerResponse)
 async def get_customer_details(
-    customer_id: int,
+    customer_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -79,7 +79,7 @@ async def get_customer_details(
 
 @router.put("/{customer_id}", response_model=CustomerResponse)
 async def update_customer(
-    customer_id: int,
+    customer_id: str,
     customer_in: CustomerUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)

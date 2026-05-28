@@ -60,8 +60,8 @@ async def create_order(
 
 @router.post("/from-cart/{cart_id}", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 async def checkout_from_cart(
-    cart_id: int,
-    customer_id: Optional[int] = None,
+    cart_id: str,
+    customer_id: Optional[str] = None,
     coupon_code: Optional[str] = None,
     order_type: str = "takeaway",
     db: AsyncSession = Depends(get_db),
@@ -114,8 +114,8 @@ async def checkout_from_cart(
 
 @router.get("", response_model=List[OrderResponse])
 async def list_orders(
-    cashier_id: Optional[int] = None,
-    customer_id: Optional[int] = None,
+    cashier_id: Optional[str] = None,
+    customer_id: Optional[str] = None,
     order_status: Optional[str] = None,
     payment_status: Optional[str] = None,
     skip: int = 0,
@@ -138,7 +138,7 @@ async def list_orders(
 
 @router.get("/{order_id}", response_model=OrderResponse)
 async def get_single_order(
-    order_id: int,
+    order_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -152,7 +152,7 @@ async def get_single_order(
 
 @router.put("/{order_id}/status", response_model=OrderResponse)
 async def update_order_status(
-    order_id: int,
+    order_id: str,
     status_in: OrderStatusUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -172,6 +172,7 @@ async def update_order_status(
         )
         
     order.order_status = status_in.order_status
+    db.add(order)
     await db.commit()
     order = await order_repository.get_with_details(db, order_id)
     
@@ -180,7 +181,7 @@ async def update_order_status(
 
 @router.post("/{order_id}/cancel", response_model=OrderResponse)
 async def cancel_order(
-    order_id: int,
+    order_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -247,6 +248,7 @@ async def cancel_order(
             
     # 3. Mark status as cancelled
     order.order_status = "cancelled"
+    db.add(order)
     await db.commit()
     order = await order_repository.get_with_details(db, order_id)
     

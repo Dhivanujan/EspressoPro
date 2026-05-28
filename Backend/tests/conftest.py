@@ -3,30 +3,15 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.pool import StaticPool
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.main import app
-from app.database.base import Base
-from app.database.session import get_db
+from app.database.session import get_db, MotorDatabaseWrapper
 from app.services.auth import auth_service
 from app.models.user import User
 
-DATABASE_URL = "sqlite+aiosqlite:///:memory:"
-
-engine = create_async_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
-TestingSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autocommit=False,
-    autoflush=False
-)
+TEST_MONGODB_URL = "mongodb://localhost:27017"
+TEST_MONGODB_DB = "coffeeshop_pos_test"
 
 @pytest_asyncio.fixture(scope="session")
 def event_loop():
@@ -38,26 +23,30 @@ def event_loop():
     loop.close()
 
 @pytest_asyncio.fixture(scope="function")
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+async def db_session() -> AsyncGenerator[MotorDatabaseWrapper, None]:
+    client = AsyncIOMotorClient(TEST_MONGODB_URL)
+    raw_database = client[TEST_MONGODB_DB]
+    
+    # 1. Clear all test collections first for a clean environment
+    collections = [
+        "users", "categories", "ingredients", "products", "product_ingredients",
+        "coupons", "customers", "orders", "order_items", "payments", "inventory_logs"
+    ]
+    for col in collections:
+        await raw_database[col].drop()
         
-    async with TestingSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
-            
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    db = MotorDatabaseWrapper(raw_database)
+    yield db
+    
+    # Clean up after test
+    for col in collections:
+        await raw_database[col].drop()
+    client.close()
 
 @pytest_asyncio.fixture(scope="function")
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(db_session: MotorDatabaseWrapper) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
+        yield db_session
             
     app.dependency_overrides[get_db] = override_get_db
     async with AsyncClient(app=app, base_url="http://test") as ac:
@@ -65,7 +54,7 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides.clear()
 
 @pytest_asyncio.fixture(scope="function")
-async def test_admin(db_session: AsyncSession) -> User:
+async def test_admin(db_session: MotorDatabaseWrapper) -> User:
     admin = User(
         username="admin_test",
         password_hash=auth_service.get_password_hash("adminpass"),
@@ -79,7 +68,7 @@ async def test_admin(db_session: AsyncSession) -> User:
     return admin
 
 @pytest_asyncio.fixture(scope="function")
-async def test_cashier(db_session: AsyncSession) -> User:
+async def test_cashier(db_session: MotorDatabaseWrapper) -> User:
     cashier = User(
         username="cashier_test",
         password_hash=auth_service.get_password_hash("cashierpass"),

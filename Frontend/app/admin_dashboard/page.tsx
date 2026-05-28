@@ -9,9 +9,7 @@ import {
   Receipt,
   DollarSign,
   Users,
-  AlertTriangle,
   Loader2,
-  Coffee,
   ShoppingBag,
 } from "lucide-react";
 
@@ -171,7 +169,7 @@ export default function EspressoProDashboard() {
               />
               <KPI_Card
                 title="Pending Tickets"
-                value={(ordersCount?.pending || 0 + (ordersCount?.preparing || 0)).toString()}
+                value={((ordersCount?.pending || 0) + (ordersCount?.preparing || 0)).toString()}
                 change="In queue & prep"
                 icon={<Users size={24} />}
               />

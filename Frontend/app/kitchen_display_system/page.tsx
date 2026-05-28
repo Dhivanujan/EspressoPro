@@ -5,7 +5,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import { apiGet, apiPut } from "../../lib/api";
-import { Loader2, Tv, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader2, Tv, RefreshCw } from "lucide-react";
 
 interface OrderItem {
   id: string;

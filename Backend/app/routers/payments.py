@@ -18,7 +18,7 @@ payment_repo = BaseRepository(Payment)
 
 @router.post("/{order_id}", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 async def process_payment(
-    order_id: int,
+    order_id: str,
     payment_in: PaymentCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -72,7 +72,7 @@ async def process_payment(
 
 @router.get("/receipt/{order_id}", response_model=ReceiptResponse)
 async def get_order_receipt(
-    order_id: int,
+    order_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

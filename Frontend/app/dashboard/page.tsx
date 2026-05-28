@@ -15,7 +15,7 @@ import {
   Plus,
   Minus,
   CreditCard,
-  TicketPercent,
+  Banknote,
   QrCode,
   Loader2,
   Trash2,
@@ -162,18 +162,10 @@ export default function DashboardPage() {
     if (!couponCode) return;
     setCouponError("");
     try {
-      // Fetch coupon details
-      const coupons = await apiGet<any[]>("/api/v1/coupons");
-      const found = coupons.find(
-        (c) => c.code.toUpperCase() === couponCode.toUpperCase() && c.active
-      );
-      if (!found) {
-        setCouponError("Invalid or inactive coupon code");
-        return;
-      }
-      setAppliedCoupon(found);
-    } catch (err) {
-      setCouponError("Error validating coupon");
+      const coupon = await apiGet<any>(`/api/v1/coupons/validate/${encodeURIComponent(couponCode)}`);
+      setAppliedCoupon(coupon);
+    } catch (err: any) {
+      setCouponError(err.message || "Invalid or inactive coupon code");
     }
   };
 
@@ -182,15 +174,10 @@ export default function DashboardPage() {
     setCustomerError("");
     setCustomer(null);
     try {
-      const customers = await apiGet<any[]>("/api/v1/customers");
-      const found = customers.find((c) => c.phone.includes(customerPhone));
-      if (!found) {
-        setCustomerError("No customer found with this phone");
-        return;
-      }
+      const found = await apiGet<any>(`/api/v1/customers/search?phone=${encodeURIComponent(customerPhone)}`);
       setCustomer(found);
-    } catch (err) {
-      setCustomerError("Error looking up customer");
+    } catch (err: any) {
+      setCustomerError(err.message || "No customer found with this phone");
     }
   };
 
@@ -572,7 +559,7 @@ export default function DashboardPage() {
               disabled={checkoutLoading || cart.length === 0}
               className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
             >
-              <QrCode size={18} className="mb-1 text-gray-400" />
+              <Banknote size={18} className="mb-1 text-gray-400" />
               Cash
             </button>
             <button
@@ -588,7 +575,7 @@ export default function DashboardPage() {
               disabled={checkoutLoading || cart.length === 0}
               className="flex flex-col h-14 items-center justify-center rounded-xl border border-[#82542a] bg-[#82542a]/5 hover:bg-[#82542a]/10 active:scale-95 transition text-xs font-bold text-[#82542a] disabled:opacity-50"
             >
-              <TicketPercent size={18} className="mb-1 text-[#82542a]" />
+              <QrCode size={18} className="mb-1 text-[#82542a]" />
               QR Pay
             </button>
           </div>

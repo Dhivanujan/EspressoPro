@@ -56,7 +56,7 @@ async def get_all_ingredients(
 
 @router.get("/ingredients/{ingredient_id}", response_model=IngredientResponse)
 async def get_single_ingredient(
-    ingredient_id: int,
+    ingredient_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -70,7 +70,7 @@ async def get_single_ingredient(
 
 @router.put("/ingredients/{ingredient_id}", response_model=IngredientResponse)
 async def update_ingredient(
-    ingredient_id: int,
+    ingredient_id: str,
     ing_in: IngredientUpdate,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
@@ -99,7 +99,7 @@ async def update_ingredient(
 
 @router.delete("/ingredients/{ingredient_id}", response_model=IngredientResponse)
 async def delete_ingredient(
-    ingredient_id: int,
+    ingredient_id: str,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
 ):
@@ -163,7 +163,7 @@ async def create_product(
 
 @router.get("/products", response_model=List[ProductResponse])
 async def get_all_products(
-    category_id: Optional[int] = None,
+    category_id: Optional[str] = None,
     search: Optional[str] = None,
     availability: Optional[bool] = None,
     skip: int = 0,
@@ -185,7 +185,7 @@ async def get_all_products(
 
 @router.get("/products/{product_id}", response_model=ProductResponse)
 async def get_single_product(
-    product_id: int,
+    product_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -199,7 +199,7 @@ async def get_single_product(
 
 @router.put("/products/{product_id}", response_model=ProductResponse)
 async def update_product(
-    product_id: int,
+    product_id: str,
     product_in: ProductUpdate,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
@@ -255,7 +255,7 @@ async def update_product(
 
 @router.delete("/products/{product_id}", response_model=ProductResponse)
 async def delete_product(
-    product_id: int,
+    product_id: str,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
 ):

@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import { apiGet, apiPost } from "../../lib/api";
+import { useAuth } from "../../lib/auth";
 import {
   Package,
   AlertTriangle,
@@ -76,6 +77,9 @@ export default function InventoryManagementPage() {
   const [addStock, setAddStock] = useState("");
   const [addUnit, setAddUnit] = useState("g");
   const [addThreshold, setAddThreshold] = useState("100");
+
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   async function loadData() {
     setLoading(true);
@@ -174,22 +178,24 @@ export default function InventoryManagementPage() {
             </p>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 rounded-xl bg-white border px-4 py-2.5 font-bold text-gray-700 transition hover:bg-gray-50 active:scale-[0.98] text-sm shadow-xs"
-            >
-              <Plus size={16} />
-              Register Raw Material
-            </button>
-            <button
-              onClick={() => handleOpenAdjust("ingredient", ingredients[0]?.id || "")}
-              className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-4 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
-            >
-              <ArrowUpDown size={16} />
-              Quick Adjustment
-            </button>
-          </div>
+          {isAdmin && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 rounded-xl bg-white border px-4 py-2.5 font-bold text-gray-700 transition hover:bg-gray-50 active:scale-[0.98] text-sm shadow-xs"
+              >
+                <Plus size={16} />
+                Register Raw Material
+              </button>
+              <button
+                onClick={() => handleOpenAdjust("ingredient", ingredients[0]?.id || "")}
+                className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-4 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+              >
+                <ArrowUpDown size={16} />
+                Quick Adjustment
+              </button>
+            </div>
+          )}
         </header>
 
         {/* Content */}
@@ -298,12 +304,14 @@ export default function InventoryManagementPage() {
                                 </span>
                               </td>
                               <td className="px-6 py-4.5 text-right">
-                                <button
-                                  onClick={() => handleOpenAdjust("ingredient", item.id)}
-                                  className="text-xs font-bold text-[#82542a] hover:underline"
-                                >
-                                  Adjust
-                                </button>
+                                {isAdmin && (
+                                  <button
+                                    onClick={() => handleOpenAdjust("ingredient", item.id)}
+                                    className="text-xs font-bold text-[#82542a] hover:underline"
+                                  >
+                                    Adjust
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           );
@@ -315,8 +323,8 @@ export default function InventoryManagementPage() {
               )}
             </div>
 
-            {/* Audit Logs Sidebar */}
-            <div className="w-full lg:w-96 shrink-0 space-y-6">
+            {/* Audit Logs Sidebar - Admin only */}
+            {isAdmin && <div className="w-full lg:w-96 shrink-0 space-y-6">
               <div className="flex items-center gap-2">
                 <History size={18} className="text-gray-400" />
                 <h2 className="text-lg font-bold text-gray-900">Live Inventory Audit Log</h2>
@@ -350,7 +358,7 @@ export default function InventoryManagementPage() {
                   ))
                 )}
               </div>
-            </div>
+            </div>}
           </div>
         </div>
       </main>

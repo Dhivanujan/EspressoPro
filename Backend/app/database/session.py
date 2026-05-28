@@ -31,6 +31,17 @@ class MotorDatabaseWrapper:
     def __getattr__(self, name):
         return getattr(self._db, name)
 
+    async def get(self, model, id) -> Any:
+        collection_name = getattr(model, "__tablename__", None)
+        if not collection_name:
+            return None
+        try:
+            query_id = ObjectId(id) if isinstance(id, str) and ObjectId.is_valid(id) else id
+            doc = await self._db[collection_name].find_one({"_id": query_id})
+            return model(**doc) if doc else None
+        except Exception:
+            return None
+
     def add(self, obj):
         if obj not in self._staged_objects:
             self._staged_objects.append(obj)
@@ -56,7 +67,15 @@ class MotorDatabaseWrapper:
                 # Re-assign properties to obj
                 if "_id" in doc:
                     doc["id"] = str(doc["_id"])
+                
+                from app.database.base import DECIMAL_FIELDS
+                from decimal import Decimal
                 for k, v in doc.items():
+                    if k in DECIMAL_FIELDS and v is not None:
+                        try:
+                            v = Decimal(str(v)).quantize(Decimal('0.00'))
+                        except Exception:
+                            pass
                     setattr(obj, k, v)
 
     async def delete(self, obj):
@@ -70,12 +89,30 @@ class MotorDatabaseWrapper:
 
     async def flush(self):
         # Save all staged objects to MongoDB
+        from datetime import datetime
+        now = datetime.utcnow()
         for obj in self._staged_objects:
             collection_name = getattr(obj, "__tablename__", None)
             if not collection_name:
                 continue
             
-            data = obj.to_dict()
+            # Automatically populate created_at and updated_at on the object
+            if not getattr(obj, "created_at", None):
+                obj.created_at = now
+            obj.updated_at = now
+            
+            # Recursively convert Decimal to float for PyMongo compatibility
+            from decimal import Decimal
+            def convert_decimals(val):
+                if isinstance(val, dict):
+                    return {k: convert_decimals(v) for k, v in val.items()}
+                elif isinstance(val, list):
+                    return [convert_decimals(v) for v in val]
+                elif isinstance(val, Decimal):
+                    return float(val)
+                return val
+            
+            data = convert_decimals(obj.to_dict())
             obj_id = getattr(obj, "_id", None) or getattr(obj, "id", None)
             
             if obj_id:
@@ -94,7 +131,54 @@ class MotorDatabaseWrapper:
         pass
 
     async def execute(self, statement, *args, **kwargs):
-        # Dynamically execute SQLAlchemy select queries against MongoDB
+        # Handle our custom MockSelect
+        if isinstance(statement, MockSelect):
+            model = statement.model
+            collection_name = getattr(model, "__tablename__", None)
+            if not collection_name:
+                return SQLAlchemyMockResult([])
+                
+            query = {}
+            from app.database.base import BinaryExpression
+            for clause in statement.clauses:
+                if isinstance(clause, BinaryExpression):
+                    col_name = clause.left.name
+                    val = clause.right
+                    op = clause.operator
+                    
+                    # Map column 'id' to '_id' in MongoDB
+                    if col_name == "id":
+                        col_name = "_id"
+                        if isinstance(val, str) and ObjectId.is_valid(val):
+                            val = ObjectId(val)
+                    elif col_name in ("product_id", "category_id", "cart_id", "cashier_id", "customer_id", "coupon_id", "order_id", "ingredient_id", "item_id"):
+                        if isinstance(val, int):
+                            val = str(val)
+                            
+                    if op == "eq":
+                        query[col_name] = val
+                    elif op == "ne":
+                        query[col_name] = {"$ne": val}
+                    elif op == "gt":
+                        query[col_name] = {"$gt": val}
+                    elif op == "lt":
+                        query[col_name] = {"$lt": val}
+                    elif op == "ge":
+                        query[col_name] = {"$gte": val}
+                    elif op == "le":
+                        query[col_name] = {"$lte": val}
+            
+            cursor = self._db[collection_name].find(query)
+            if statement.offset_val is not None:
+                cursor = cursor.skip(statement.offset_val)
+            if statement.limit_val is not None:
+                cursor = cursor.limit(statement.limit_val)
+                
+            docs = await cursor.to_list(length=100)
+            objects = [model(**doc) for doc in docs]
+            return SQLAlchemyMockResult(objects)
+
+        # Fallback to SQLAlchemy statement processing
         try:
             from sqlalchemy.sql.selectable import Select
             if not isinstance(statement, Select):
@@ -117,8 +201,8 @@ class MotorDatabaseWrapper:
             if where_node is None:
                 return {}
             
-            from sqlalchemy.sql.elements import BinaryExpression, BooleanClauseList, BindParameter
-            if isinstance(where_node, BinaryExpression):
+            from sqlalchemy.sql.elements import BinaryExpression as SABinaryExpression, BooleanClauseList, BindParameter
+            if isinstance(where_node, SABinaryExpression):
                 left = getattr(where_node, "left", None)
                 right = getattr(where_node, "right", None)
                 
@@ -188,8 +272,48 @@ class MotorDatabaseWrapper:
         objects = [model(**doc) for doc in docs]
         return SQLAlchemyMockResult(objects)
 
+class MockSelect:
+    def __init__(self, model):
+        self.model = model
+        self.clauses = []
+        self.offset_val = None
+        self.limit_val = None
+        self.order_by_val = None
+
+    def filter(self, *clauses):
+        self.clauses.extend(clauses)
+        return self
+
+    def where(self, *clauses):
+        self.clauses.extend(clauses)
+        return self
+
+    def offset(self, val):
+        self.offset_val = val
+        return self
+
+    def limit(self, val):
+        self.limit_val = val
+        return self
+
+    def order_by(self, *args):
+        self.order_by_val = args
+        return self
+
 # Wrap the MongoDB client
 database = MotorDatabaseWrapper(raw_database)
+
+# Monkeypatch select
+import sys
+import sqlalchemy
+
+def mock_select_func(*args):
+    if args:
+        return MockSelect(args[0])
+    return MockSelect(None)
+
+sqlalchemy.select = mock_select_func
+sys.modules["sqlalchemy"].select = mock_select_func
 
 async def get_db():
     """

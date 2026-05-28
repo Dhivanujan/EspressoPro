@@ -75,7 +75,7 @@ async def list_coupons(
 
 @router.put("/{coupon_id}", response_model=CouponResponse)
 async def update_coupon(
-    coupon_id: int,
+    coupon_id: str,
     coupon_in: CouponUpdate,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
@@ -104,7 +104,7 @@ async def update_coupon(
 
 @router.delete("/{coupon_id}", response_model=CouponResponse)
 async def delete_coupon(
-    coupon_id: int,
+    coupon_id: str,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
 ):

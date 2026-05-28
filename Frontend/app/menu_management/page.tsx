@@ -5,7 +5,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import { apiGet, apiPost, apiPut, apiDelete } from "../../lib/api";
-import { Coffee, Search, Plus, Edit3, Trash2, Check, X, Loader2 } from "lucide-react";
+import { Coffee, Search, Plus, Edit3, Trash2, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 interface Product {

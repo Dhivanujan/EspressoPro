@@ -48,7 +48,7 @@ async def get_all_categories(
 
 @router.get("/{category_id}", response_model=CategoryResponse)
 async def get_single_category(
-    category_id: int,
+    category_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -62,7 +62,7 @@ async def get_single_category(
 
 @router.put("/{category_id}", response_model=CategoryResponse)
 async def update_category(
-    category_id: int,
+    category_id: str,
     category_in: CategoryUpdate,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
@@ -92,7 +92,7 @@ async def update_category(
 
 @router.delete("/{category_id}", response_model=CategoryResponse)
 async def delete_category(
-    category_id: int,
+    category_id: str,
     db: AsyncSession = Depends(get_db),
     admin_user: User = Depends(RoleChecker(["admin"]))
 ):
