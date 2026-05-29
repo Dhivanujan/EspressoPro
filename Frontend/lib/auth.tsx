@@ -23,6 +23,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
+export function getDefaultRoute(role?: string | null) {
+  return role === "admin" ? "/admin_dashboard" : "/dashboard";
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -55,13 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (loading) return;
 
     const isAuthPage = pathname === "/login";
+    const defaultRoute = getDefaultRoute(user?.role ?? null);
     
     if (!token && !isAuthPage) {
-      router.push("/login");
+      router.replace("/login");
     } else if (token && isAuthPage) {
-      router.push("/dashboard");
+      router.replace(defaultRoute);
     }
-  }, [token, pathname, loading, router]);
+  }, [token, user, pathname, loading, router]);
 
   const login = async (username: string, password: string) => {
     setLoading(true);
@@ -103,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("espressopro_token", data.access_token);
       localStorage.setItem("espressopro_user", JSON.stringify(userProfile));
       
-      router.push("/dashboard");
+      router.replace(getDefaultRoute(userProfile.role));
     } catch (err) {
       logout();
       throw err;
@@ -117,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("espressopro_token");
     localStorage.removeItem("espressopro_user");
-    router.push("/login");
+    router.replace("/login");
   };
 
   return (

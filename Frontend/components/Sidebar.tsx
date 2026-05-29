@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "../lib/auth";
+import { getDefaultRoute, useAuth } from "../lib/auth";
 import {
   Coffee,
   Tv,
@@ -20,6 +20,7 @@ import {
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const homeHref = getDefaultRoute(user?.role ?? null);
 
   const menuItems = [
     {
@@ -69,7 +70,7 @@ export default function Sidebar() {
     <aside className="hidden lg:flex w-72 flex-col border-r border-gray-200 bg-white p-5 h-screen sticky top-0">
       {/* Brand Header */}
       <div className="mb-8">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+        <Link href={homeHref} className="flex items-center gap-3 group">
           <div className="w-10 h-10 rounded-xl bg-[#2d241e] flex items-center justify-center text-white transition-transform group-hover:scale-105">
             <Coffee size={22} />
           </div>
