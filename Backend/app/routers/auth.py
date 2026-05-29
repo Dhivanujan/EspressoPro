@@ -51,6 +51,10 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if auth_service.needs_password_update(user.password_hash):
+        new_hash = auth_service.get_password_hash(form_data.password)
+        user = await user_repository.update(db, db_obj=user, obj_in={"password_hash": new_hash})
     
     if not user.is_active:
         raise HTTPException(

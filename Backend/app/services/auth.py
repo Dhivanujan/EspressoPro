@@ -4,14 +4,33 @@ from jose import jwt
 from passlib.context import CryptContext
 from app.config.settings import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 class AuthService:
+    def _truncate_for_bcrypt(self, password: str) -> str:
+        encoded = password.encode("utf-8")
+        if len(encoded) <= 72:
+            return password
+        return encoded[:72].decode("utf-8", errors="ignore")
+
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            scheme = pwd_context.identify(hashed_password)
+            candidate = (
+                self._truncate_for_bcrypt(plain_password)
+                if scheme == "bcrypt"
+                else plain_password
+            )
+            return pwd_context.verify(candidate, hashed_password)
+        except ValueError:
+            # Handles bcrypt's 72-byte limit and malformed hashes without crashing login.
+            return False
 
     def get_password_hash(self, password: str) -> str:
         return pwd_context.hash(password)
+
+    def needs_password_update(self, hashed_password: str) -> bool:
+        return pwd_context.needs_update(hashed_password)
 
     def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
         to_encode = data.copy()
