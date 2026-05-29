@@ -54,7 +54,11 @@ export default function MenuManagementPage() {
       setCategories(fetchedCats);
       
       const fetchedProds = await apiGet<Product[]>("/api/v1/products");
-      setProducts(fetchedProds);
+      const formattedProds = fetchedProds.map((p) => ({
+        ...p,
+        price: Number(p.price),
+      }));
+      setProducts(formattedProds);
     } catch (err) {
       console.error("Failed to load POS data", err);
     } finally {

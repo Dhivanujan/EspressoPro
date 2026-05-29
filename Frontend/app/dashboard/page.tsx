@@ -70,7 +70,11 @@ export default function DashboardPage() {
         setCategories(fetchedCats);
 
         const fetchedProds = await apiGet<Product[]>("/api/v1/products");
-        setProducts(fetchedProds);
+        const formattedProds = fetchedProds.map((p) => ({
+          ...p,
+          price: Number(p.price),
+        }));
+        setProducts(formattedProds);
       } catch (err) {
         console.error("Failed to load POS data", err);
       } finally {
@@ -210,7 +214,11 @@ export default function DashboardPage() {
 
       // Refresh stock values locally
       const fetchedProds = await apiGet<Product[]>("/api/v1/products");
-      setProducts(fetchedProds);
+      const formattedProds = fetchedProds.map((p) => ({
+        ...p,
+        price: Number(p.price),
+      }));
+      setProducts(formattedProds);
 
       setOrderSuccess(order.order_number);
       clearCart();

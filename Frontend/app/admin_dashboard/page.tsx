@@ -64,7 +64,23 @@ export default function EspressoProDashboard() {
     setLoading(true);
     try {
       const fetchedAnalytics = await apiGet<AnalyticsData>("/api/v1/analytics/dashboard");
-      setData(fetchedAnalytics);
+      const formattedAnalytics: AnalyticsData = {
+        ...fetchedAnalytics,
+        revenue_summary: {
+          ...fetchedAnalytics.revenue_summary,
+          total_revenue: Number(fetchedAnalytics.revenue_summary.total_revenue),
+          average_order_value: Number(fetchedAnalytics.revenue_summary.average_order_value),
+        },
+        sales_history: fetchedAnalytics.sales_history.map((item) => ({
+          ...item,
+          revenue: Number(item.revenue),
+        })),
+        top_items: fetchedAnalytics.top_items.map((item) => ({
+          ...item,
+          revenue_generated: Number(item.revenue_generated),
+        })),
+      };
+      setData(formattedAnalytics);
 
       const fetchedAlerts = await apiGet<LowStockAlert[]>("/api/v1/inventory/alerts");
       setAlerts(fetchedAlerts);
