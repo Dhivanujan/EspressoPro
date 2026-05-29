@@ -1,36 +1,32 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+import bcrypt
 from jose import jwt
-from passlib.context import CryptContext
 from app.config.settings import settings
 
-pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
-
 class AuthService:
-    def _truncate_for_bcrypt(self, password: str) -> str:
+    def _truncate_for_bcrypt(self, password: str) -> bytes:
         encoded = password.encode("utf-8")
         if len(encoded) <= 72:
-            return password
-        return encoded[:72].decode("utf-8", errors="ignore")
+            return encoded
+        return encoded[:72]
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         try:
-            scheme = pwd_context.identify(hashed_password)
-            candidate = (
-                self._truncate_for_bcrypt(plain_password)
-                if scheme == "bcrypt"
-                else plain_password
-            )
-            return pwd_context.verify(candidate, hashed_password)
-        except ValueError:
-            # Handles bcrypt's 72-byte limit and malformed hashes without crashing login.
+            password_bytes = self._truncate_for_bcrypt(plain_password)
+            hashed_bytes = hashed_password.encode("utf-8")
+            return bcrypt.checkpw(password_bytes, hashed_bytes)
+        except Exception:
             return False
 
     def get_password_hash(self, password: str) -> str:
-        return pwd_context.hash(password)
+        password_bytes = self._truncate_for_bcrypt(password)
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password_bytes, salt)
+        return hashed.decode("utf-8")
 
     def needs_password_update(self, hashed_password: str) -> bool:
-        return pwd_context.needs_update(hashed_password)
+        return not hashed_password.startswith("$2b$")
 
     def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
         to_encode = data.copy()

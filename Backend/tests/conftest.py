@@ -49,7 +49,8 @@ async def client(db_session: MotorDatabaseWrapper) -> AsyncGenerator[AsyncClient
         yield db_session
             
     app.dependency_overrides[get_db] = override_get_db
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    from httpx import ASGITransport
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
 
