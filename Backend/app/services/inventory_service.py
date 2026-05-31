@@ -3,7 +3,7 @@ from bson import ObjectId
 from app.models.product import Product, Ingredient
 from app.models.inventory import InventoryLog
 from app.schemas.inventory import LowStockAlert, InventoryAdjustment
-from datetime import datetime
+from datetime import datetime, timezone
 
 class InventoryService:
     async def get_low_stock_alerts(self, db: Any) -> List[LowStockAlert]:
@@ -80,7 +80,7 @@ class InventoryService:
             change_amount=adjustment.change_amount,
             reason=adjustment.reason,
             adjusted_by=str(user_id),
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
         db.add(log)
         await db.flush()

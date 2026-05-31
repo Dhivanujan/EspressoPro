@@ -113,8 +113,8 @@ class OrderService:
             tax=float(tax_amount),
             discount_amount=float(discount_amount),
             total=float(total_amount),
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
         )
         db.add(db_order)
         await db.flush()  # Save db_order and populate db_order.id
@@ -141,7 +141,7 @@ class OrderService:
                 change_amount=float(-quantity),
                 reason="sale",
                 adjusted_by=str(cashier_id),
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             )
             db.add(prod_log)
             
@@ -163,7 +163,7 @@ class OrderService:
                         change_amount=-float(deducted_qty),
                         reason="sale",
                         adjusted_by=str(cashier_id),
-                        created_at=datetime.utcnow()
+                        created_at=datetime.now(timezone.utc)
                     )
                     db.add(ing_log)
 

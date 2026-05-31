@@ -44,3 +44,13 @@ class Settings(BaseSettings):
         return v
 
 settings = Settings()
+
+# Runtime validation warnings
+import warnings
+if settings.JWT_SECRET_KEY == "change-me":
+    warnings.warn(
+        "JWT_SECRET_KEY is set to the default value 'change-me'. "
+        "This is insecure for production. Set JWT_SECRET_KEY in your .env file.",
+        UserWarning,
+        stacklevel=2
+    )

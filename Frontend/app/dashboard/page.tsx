@@ -57,10 +57,10 @@ export default function DashboardPage() {
 
   // Loyalty & Discount
   const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<Record<string, any> | null>(null);
   const [couponError, setCouponError] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [customer, setCustomer] = useState<any>(null);
+  const [customer, setCustomer] = useState<Record<string, any> | null>(null);
   const [customerError, setCustomerError] = useState("");
 
   useEffect(() => {
@@ -221,6 +221,8 @@ export default function DashboardPage() {
       setProducts(formattedProds);
 
       setOrderSuccess(order.order_number);
+      // Auto-dismiss success message after 5 seconds
+      setTimeout(() => setOrderSuccess(null), 5000);
       clearCart();
       setCustomer(null);
       setCustomerPhone("");

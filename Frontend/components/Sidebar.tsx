@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getDefaultRoute, useAuth } from "../lib/auth";
@@ -15,12 +16,15 @@ import {
   LogOut,
   HelpCircle,
   User as UserIcon,
+  Menu,
+  X,
 } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const homeHref = getDefaultRoute(user?.role ?? null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const menuItems = [
     {
@@ -66,11 +70,19 @@ export default function Sidebar() {
     (item) => !user || item.roles.includes(user.role)
   );
 
-  return (
-    <aside className="hidden lg:flex w-72 flex-col border-r border-gray-200 bg-white p-5 h-screen sticky top-0">
+  const sidebarContent = (
+    <>
+      {/* Close button for mobile */}
+      <button
+        onClick={() => setMobileOpen(false)}
+        className="lg:hidden absolute top-4 right-4 w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center"
+      >
+        <X size={18} className="text-gray-500" />
+      </button>
+
       {/* Brand Header */}
       <div className="mb-8">
-        <Link href={homeHref} className="flex items-center gap-3 group">
+        <Link href={homeHref} className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
           <div className="w-10 h-10 rounded-xl bg-[#2d241e] flex items-center justify-center text-white transition-transform group-hover:scale-105">
             <Coffee size={22} />
           </div>
@@ -93,6 +105,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setMobileOpen(false)}
               className={`flex w-full items-center gap-3.5 rounded-xl px-4 py-3.5 transition-all duration-200 ${
                 isActive
                   ? "bg-[#febf8c]/25 text-[#82542a] font-semibold shadow-sm shadow-[#febf8c]/10"
@@ -144,6 +157,37 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm"
+      >
+        <Menu size={20} className="text-gray-700" />
+      </button>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`${
+          mobileOpen
+            ? "fixed inset-y-0 left-0 z-50 flex"
+            : "hidden lg:flex"
+        } w-72 flex-col border-r border-gray-200 bg-white p-5 h-screen sticky top-0`}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

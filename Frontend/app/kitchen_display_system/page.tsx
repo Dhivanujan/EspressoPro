@@ -29,6 +29,7 @@ export default function KitchenDisplayPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
   async function loadOrders() {
     setRefreshing(true);
@@ -58,6 +59,12 @@ export default function KitchenDisplayPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Update timer display every second for real-time elapsed time
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleUpdateStatus = async (orderId: string, currentStatus: string) => {
     const nextStatus = currentStatus === "pending" ? "preparing" : "completed";
     try {
@@ -66,10 +73,10 @@ export default function KitchenDisplayPage() {
       });
       // Update local state instantly for snappy UI
       if (nextStatus === "completed") {
-        setOrders(orders.filter((o) => o.id !== orderId));
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
       } else {
-        setOrders(
-          orders.map((o) =>
+        setOrders((prev) =>
+          prev.map((o) =>
             o.id === orderId ? { ...o, order_status: "preparing" } : o
           )
         );
@@ -81,7 +88,7 @@ export default function KitchenDisplayPage() {
 
   // Helper to calculate elapsed time in minutes
   const getElapsedTime = (createdAt: string) => {
-    const elapsedMs = new Date().getTime() - new Date(createdAt).getTime();
+    const elapsedMs = now - new Date(createdAt).getTime();
     const mins = Math.floor(elapsedMs / 60000);
     const secs = Math.floor((elapsedMs % 60000) / 1000);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
@@ -89,7 +96,7 @@ export default function KitchenDisplayPage() {
 
   // Helper to check if order is overdue (e.g. > 5 minutes)
   const isOverdue = (createdAt: string) => {
-    const elapsedMs = new Date().getTime() - new Date(createdAt).getTime();
+    const elapsedMs = now - new Date(createdAt).getTime();
     return elapsedMs > 300000; // 5 minutes
   };
 

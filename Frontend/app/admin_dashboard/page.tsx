@@ -5,6 +5,8 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 import { apiGet } from "../../lib/api";
+import { useAuth } from "../../lib/auth";
+import { useRouter } from "next/navigation";
 import {
   Receipt,
   DollarSign,
@@ -56,6 +58,16 @@ interface LowStockAlert {
 }
 
 export default function EspressoProDashboard() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (user && user.role !== "admin") {
+      router.replace("/dashboard");
+    }
+  }, [user, router]);
+
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [alerts, setAlerts] = useState<LowStockAlert[]>([]);
   const [loading, setLoading] = useState(true);

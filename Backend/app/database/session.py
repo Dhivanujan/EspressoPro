@@ -89,8 +89,8 @@ class MotorDatabaseWrapper:
 
     async def flush(self):
         # Save all staged objects to MongoDB
-        from datetime import datetime
-        now = datetime.utcnow()
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
         for obj in self._staged_objects:
             collection_name = getattr(obj, "__tablename__", None)
             if not collection_name:

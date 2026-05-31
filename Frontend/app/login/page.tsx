@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { Coffee, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
+import { Coffee, User as UserIcon, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 
 export default function LoginPage() {
@@ -22,8 +22,8 @@ export default function LoginPage() {
     setError("");
     try {
       await login(username, password);
-    } catch (err: any) {
-      setError(err.message || "Invalid username or password. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Invalid username or password. Please try again.");
     }
   };
 
@@ -73,7 +73,7 @@ export default function LoginPage() {
             </label>
 
             <div className="relative">
-              <Mail
+              <UserIcon
                 size={18}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
               />
