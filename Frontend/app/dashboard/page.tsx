@@ -68,6 +68,26 @@ export default function DashboardPage() {
   const [customer, setCustomer] = useState<Record<string, any> | null>(null);
   const [customerError, setCustomerError] = useState("");
 
+  // Simulated QR Code Scanner States
+  const [scanning, setScanning] = useState(false);
+
+  // Split Payments
+  const [isSplitMode, setIsSplitMode] = useState(false);
+  const [splitCash, setSplitCash] = useState("");
+  const [splitCard, setSplitCard] = useState("");
+  const [splitQR, setSplitQR] = useState("");
+  const [splitPoints, setSplitPoints] = useState("");
+
+  // Celebratory Upgrade Popup Data
+  const [celebrationData, setCelebrationData] = useState<{
+    pointsEarned: number;
+    pointsRedeemed: number;
+    tierUpgraded: boolean;
+    oldTier: string;
+    newTier: string;
+    customerName: string;
+  } | null>(null);
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -167,6 +187,68 @@ export default function DashboardPage() {
   const tax = (subtotal - discount) * 0.1; // 10% tax
   const total = subtotal - discount + tax;
 
+  // Real-time dynamic points calculations
+  const calculatePointsToEarn = () => {
+    if (!customer) return 0;
+    const ptsRedeemedVal = parseFloat(splitPoints) || 0;
+    const grossPaid = Math.max(0, total - ptsRedeemedVal);
+    
+    // Tier multipliers Bronze: 1.0x, Silver: 1.1x, Gold: 1.25x, Platinum: 1.5x
+    const multipliers: Record<string, number> = {
+      Bronze: 1.0,
+      Silver: 1.1,
+      Gold: 1.25,
+      Platinum: 1.5
+    };
+    
+    const tierMultiplier = multipliers[customer.tier] || 1.0;
+    
+    // Check if there is an active double points multiplier (seasonal or holiday)
+    const activeCampaignMultiplier = 1.0; 
+    const pointsCalculated = (grossPaid / 100) * tierMultiplier * activeCampaignMultiplier;
+    return Math.floor(pointsCalculated);
+  };
+
+  const pointsToEarn = calculatePointsToEarn();
+
+  // Play audio beep for visually simulated scan
+  const playScanBeep = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(1300, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+      osc.stop(audioCtx.currentTime + 0.15);
+    } catch (e) {
+      console.warn("Audio Context beep suppressed by browser policies");
+    }
+  };
+
+  // Simulate Member visual QR Scanning Mockup
+  const handleSimulateScan = () => {
+    setScanning(true);
+    setCustomerError("");
+    setCustomer(null);
+    setTimeout(async () => {
+      setScanning(false);
+      playScanBeep();
+      // Auto-targets Bob Jones (+15550288) or fallback Alice Smith (+15550199)
+      const scannedPhone = "+15550288";
+      setCustomerPhone(scannedPhone);
+      try {
+        const found = await apiGet<any>(`/api/v1/customers/search?phone=${encodeURIComponent(scannedPhone)}`);
+        setCustomer(found);
+      } catch (err: any) {
+        setCustomerError(err.message || "Simulated scan customer phone lookup failed");
+      }
+    }, 1200);
+  };
+
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
     setCouponError("");
@@ -190,7 +272,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCheckout = async (method: "cash" | "card" | "qr") => {
+  const handleCheckout = async (method: "cash" | "card" | "qr" | "split") => {
     if (cart.length === 0) return;
     setCheckoutLoading(true);
     setOrderSuccess(null);
@@ -209,21 +291,78 @@ export default function DashboardPage() {
 
       const order = await apiPost<any>("/api/v1/orders", orderPayload);
 
-      // 2. Create payment on the backend
-      const paymentPayload = {
-        payment_method: method,
-        amount_paid: total,
-      };
+      // 2. Formulate payment splits or single settlement
+      let paymentPayload: Record<string, any> = {};
+      let splitsArray = [];
 
-      await apiPost<any>(`/api/v1/payments/${order.id}`, paymentPayload);
+      if (method === "split") {
+        const cashVal = parseFloat(splitCash) || 0;
+        const cardVal = parseFloat(splitCard) || 0;
+        const qrVal = parseFloat(splitQR) || 0;
+        const pointsVal = parseFloat(splitPoints) || 0;
+        
+        if (cashVal > 0) splitsArray.push({ payment_method: "cash", amount_paid: cashVal });
+        if (cardVal > 0) splitsArray.push({ payment_method: "card", amount_paid: cardVal });
+        if (qrVal > 0) splitsArray.push({ payment_method: "qr", amount_paid: qrVal });
+        if (pointsVal > 0) splitsArray.push({ payment_method: "points", amount_paid: pointsVal });
+
+        // Sum split balances
+        const sumSplitsPaid = cashVal + cardVal + qrVal + pointsVal;
+        if (sumSplitsPaid < total) {
+          alert(`Split payments sum of $${sumSplitsPaid.toFixed(2)} is less than total $${total.toFixed(2)}`);
+          setCheckoutLoading(false);
+          return;
+        }
+
+        paymentPayload = {
+          payment_method: "split",
+          amount_paid: sumSplitsPaid,
+          splits: splitsArray
+        };
+      } else {
+        paymentPayload = {
+          payment_method: method,
+          amount_paid: total,
+        };
+      }
+
+      // 3. Process payment
+      const paymentResponse = await apiPost<any>(`/api/v1/payments/${order.id}`, paymentPayload);
 
       // Calculate amount paid and change for cash
       let amountPaid = total;
       let changeAmount = 0;
-      if (method === "cash") {
+      
+      if (method === "split") {
+        const cashVal = parseFloat(splitCash) || 0;
+        const nonCash = (parseFloat(splitCard) || 0) + (parseFloat(splitQR) || 0) + (parseFloat(splitPoints) || 0);
+        const cashNeeded = Math.max(0, total - nonCash);
+        if (cashVal > cashNeeded) {
+          changeAmount = cashVal - cashNeeded;
+        }
+        amountPaid = cashVal + nonCash;
+      } else if (method === "cash") {
         const rounded = Math.ceil(total / 5) * 5;
         amountPaid = rounded;
         changeAmount = rounded - total;
+      }
+
+      // Check points details for celebratory popup
+      const earned = paymentResponse.points_earned || 0;
+      const redeemed = paymentResponse.points_redeemed || 0;
+      const upgraded = paymentResponse.tier_upgraded || false;
+      const oldT = paymentResponse.old_tier || "Bronze";
+      const newT = paymentResponse.new_tier || "Bronze";
+
+      if (customer && (earned > 0 || redeemed > 0 || upgraded)) {
+        setCelebrationData({
+          pointsEarned: earned,
+          pointsRedeemed: redeemed,
+          tierUpgraded: upgraded,
+          oldTier: oldT,
+          newTier: newT,
+          customerName: customer.name
+        });
       }
 
       setReceiptData({
@@ -234,7 +373,7 @@ export default function DashboardPage() {
         couponCode: appliedCoupon ? appliedCoupon.code : "NONE",
         tax: tax,
         total: total,
-        paymentMethod: method,
+        paymentMethod: method === "split" ? "SPLIT TRANSACTION" : method,
         amountPaid: amountPaid,
         changeAmount: changeAmount,
         timestamp: new Date().toLocaleString(),
@@ -254,6 +393,11 @@ export default function DashboardPage() {
       clearCart();
       setCustomer(null);
       setCustomerPhone("");
+      setIsSplitMode(false);
+      setSplitCash("");
+      setSplitCard("");
+      setSplitQR("");
+      setSplitPoints("");
       setCartDrawerOpen(false);
     } catch (err: any) {
       alert(err.message || "Failed to process order checkout.");
@@ -263,6 +407,14 @@ export default function DashboardPage() {
   };
 
   const renderCart = (isDrawer = false) => {
+    // Check if splits cover the total
+    const cashVal = parseFloat(splitCash) || 0;
+    const cardVal = parseFloat(splitCard) || 0;
+    const qrVal = parseFloat(splitQR) || 0;
+    const pointsVal = parseFloat(splitPoints) || 0;
+    const totalSplits = cashVal + cardVal + qrVal + pointsVal;
+    const remainingSplit = Math.max(0, total - totalSplits);
+
     return (
       <div className="flex flex-col h-full bg-white">
         {/* Only show header inside aside if it is NOT the drawer */}
@@ -366,15 +518,37 @@ export default function DashboardPage() {
                 />
                 <button
                   onClick={handleLookupCustomer}
-                  className="text-xs font-bold px-4 py-2 border rounded-xl hover:bg-white transition bg-gray-50 hover:shadow-xs active:scale-95"
+                  className="text-xs font-bold px-3 py-2 border rounded-xl hover:bg-white transition bg-gray-50 hover:shadow-xs active:scale-95 shrink-0"
                 >
                   Lookup
                 </button>
+                <button
+                  onClick={handleSimulateScan}
+                  className="text-xs font-bold px-3 py-2 border border-amber-200 bg-amber-50 hover:bg-amber-100 text-[#82542a] rounded-xl transition hover:shadow-xs active:scale-95 flex items-center gap-1.5 shrink-0"
+                >
+                  <QrCode size={13} />
+                  Scan QR
+                </button>
               </div>
+              
               {customer && (
-                <div className="mt-2 text-xs bg-emerald-50 text-emerald-800 p-2.5 rounded-lg border border-emerald-100 animate-scale-up">
-                  <p className="font-bold">{customer.name}</p>
-                  <p className="mt-0.5">Points: {customer.loyalty_points}</p>
+                <div className="mt-2 text-xs bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-800 p-3 rounded-xl border border-emerald-100 animate-scale-up flex justify-between items-center shadow-xs">
+                  <div>
+                    <p className="font-bold flex items-center gap-1.5">
+                      <span className={`h-2 w-2 rounded-full ${
+                        customer.tier === "Platinum" ? "bg-purple-500 animate-pulse" :
+                        customer.tier === "Gold" ? "bg-amber-500" :
+                        customer.tier === "Silver" ? "bg-gray-400" : "bg-orange-400"
+                      }`} />
+                      {customer.name}
+                    </p>
+                    <p className="mt-0.5 text-emerald-600">Points: <span className="font-bold">{customer.loyalty_points}</span> • Tier: <span className="font-semibold uppercase text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md">{customer.tier || "Bronze"}</span></p>
+                  </div>
+                  {pointsToEarn > 0 && (
+                    <div className="text-right shrink-0 bg-amber-500 text-white rounded-lg px-2 py-1 font-bold animate-pulse text-[10px] shadow-xs">
+                      +{pointsToEarn} pts to earn!
+                    </div>
+                  )}
                 </div>
               )}
               {customerError && (
@@ -440,50 +614,162 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            <button
-              onClick={() => handleCheckout("cash")}
-              disabled={checkoutLoading || cart.length === 0}
-              className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
-            >
-              <Banknote size={18} className="mb-1 text-gray-400" />
-              Cash
-            </button>
-            <button
-              onClick={() => handleCheckout("card")}
-              disabled={checkoutLoading || cart.length === 0}
-              className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
-            >
-              <CreditCard size={18} className="mb-1 text-gray-400" />
-              Card
-            </button>
-            <button
-              onClick={() => handleCheckout("qr")}
-              disabled={checkoutLoading || cart.length === 0}
-              className="flex flex-col h-14 items-center justify-center rounded-xl border border-[#82542a] bg-[#82542a]/5 hover:bg-[#82542a]/10 active:scale-95 transition text-xs font-bold text-[#82542a] disabled:opacity-50"
-            >
-              <QrCode size={18} className="mb-1 text-[#82542a]" />
-              QR Pay
-            </button>
-          </div>
+          {/* Split Payment Section Toggle */}
+          {cart.length > 0 && (
+            <div className="mb-3.5 border border-dashed border-gray-200 rounded-xl overflow-hidden bg-gray-50/50">
+              <button
+                onClick={() => setIsSplitMode(!isSplitMode)}
+                className="w-full flex justify-between items-center p-3 text-xs font-bold text-gray-600 hover:bg-gray-100 transition"
+              >
+                <span>{isSplitMode ? "🔒 Use Single Payment Method" : "💸 Configure Split Payment"}</span>
+                <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full font-semibold">
+                  {isSplitMode ? "Splits Active" : "Click to Split"}
+                </span>
+              </button>
 
-          <button
-            onClick={() => handleCheckout("cash")}
-            disabled={checkoutLoading || cart.length === 0}
-            className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#170f0a] text-base font-bold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
-          >
-            {checkoutLoading ? (
-              <>
-                <Loader2 className="animate-spin" size={18} />
-                Processing Ticket...
-              </>
-            ) : (
-              <>
-                <CreditCard size={18} />
-                Checkout Total: ${total.toFixed(2)}
-              </>
-            )}
-          </button>
+              {isSplitMode && (
+                <div className="p-3 border-t border-dashed border-gray-200 bg-white space-y-2.5 animate-scale-up">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Cash Amount ($)</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={splitCash}
+                        onChange={(e) => setSplitCash(e.target.value)}
+                        className="w-full text-xs rounded-lg border border-gray-200 px-2.5 py-1.5 outline-none font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Card Amount ($)</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={splitCard}
+                        onChange={(e) => setSplitCard(e.target.value)}
+                        className="w-full text-xs rounded-lg border border-gray-200 px-2.5 py-1.5 outline-none font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">QR Amount ($)</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={splitQR}
+                        onChange={(e) => setSplitQR(e.target.value)}
+                        className="w-full text-xs rounded-lg border border-gray-200 px-2.5 py-1.5 outline-none font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Points Value ($)</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        disabled={!customer}
+                        value={splitPoints}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          if (customer && val > customer.loyalty_points) {
+                            setSplitPoints(customer.loyalty_points.toString());
+                          } else {
+                            setSplitPoints(e.target.value);
+                          }
+                        }}
+                        className="w-full text-xs rounded-lg border border-gray-200 px-2.5 py-1.5 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed font-bold"
+                      />
+                      {!customer && (
+                        <span className="text-[8px] text-amber-600 block mt-0.5 font-medium">Scan member to pay with points</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs pt-1.5 border-t border-gray-100">
+                    <span className="font-semibold text-gray-400">Total Configured:</span>
+                    <span className="font-bold text-gray-700">${totalSplits.toFixed(2)}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-semibold text-gray-400">Remaining to Cover:</span>
+                    <span className={`font-bold ${remainingSplit > 0 ? "text-red-500 animate-pulse" : "text-emerald-600 font-extrabold"}`}>
+                      ${remainingSplit.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isSplitMode ? (
+            <>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <button
+                  onClick={() => handleCheckout("cash")}
+                  disabled={checkoutLoading || cart.length === 0}
+                  className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
+                >
+                  <Banknote size={18} className="mb-1 text-gray-400" />
+                  Cash
+                </button>
+                <button
+                  onClick={() => handleCheckout("card")}
+                  disabled={checkoutLoading || cart.length === 0}
+                  className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
+                >
+                  <CreditCard size={18} className="mb-1 text-gray-400" />
+                  Card
+                </button>
+                <button
+                  onClick={() => handleCheckout("qr")}
+                  disabled={checkoutLoading || cart.length === 0}
+                  className="flex flex-col h-14 items-center justify-center rounded-xl border border-[#82542a] bg-[#82542a]/5 hover:bg-[#82542a]/10 active:scale-95 transition text-xs font-bold text-[#82542a] disabled:opacity-50"
+                >
+                  <QrCode size={18} className="mb-1 text-[#82542a]" />
+                  QR Pay
+                </button>
+              </div>
+
+              <button
+                onClick={() => handleCheckout("cash")}
+                disabled={checkoutLoading || cart.length === 0}
+                className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#170f0a] text-base font-bold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50 font-sans"
+              >
+                {checkoutLoading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    Processing Ticket...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={18} />
+                    Checkout Total: ${total.toFixed(2)}
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => handleCheckout("split")}
+              disabled={checkoutLoading || cart.length === 0 || remainingSplit > 0.01}
+              className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#82542a] hover:bg-[#6c4420] text-base font-bold text-white transition active:scale-[0.98] disabled:opacity-50 font-sans shadow-md"
+            >
+              {checkoutLoading ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  Processing Splits...
+                </>
+              ) : remainingSplit > 0.01 ? (
+                <>Configure Remaining (${remainingSplit.toFixed(2)})</>
+              ) : (
+                <>
+                  <CheckCircle2 size={18} className="text-white" />
+                  Complete Split Checkout
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -835,6 +1121,80 @@ export default function DashboardPage() {
                 New Order
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Simulated Visual QR Scanner Overlay */}
+      {scanning && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md animate-fade-in p-4">
+          <div className="relative border-4 border-dashed border-amber-500 rounded-3xl p-8 max-w-sm w-full bg-black/40 flex flex-col items-center text-center shadow-[0_0_50px_rgba(245,158,11,0.2)]">
+            {/* Pulsing red scan line */}
+            <div className="absolute left-0 right-0 h-1.5 bg-red-500/80 shadow-[0_0_15px_#ef4444] animate-bounce top-1/2" style={{ animationDuration: "1.8s" }} />
+            
+            <QrCode className="text-amber-500 animate-pulse mb-6 stroke-[1.2]" size={96} />
+            <h3 className="text-xl font-bold text-white mb-2 tracking-wide font-sans">Simulating Member Scan</h3>
+            <p className="text-xs text-gray-400 max-w-xs font-sans">Aligning POS terminal optical reader to customer loyalty pass QR...</p>
+            <div className="mt-6 flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full border border-white/15">
+              <Loader2 className="animate-spin text-amber-500" size={14} />
+              <span className="text-xs text-white font-semibold font-mono">OPTICAL FEED ACTIVE</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Celebratory Points & Tier Status Upgrade Popup */}
+      {celebrationData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="relative bg-gradient-to-br from-[#170f0a] to-[#2d1e15] border border-amber-500/30 rounded-3xl max-w-md w-full p-8 text-center shadow-2xl overflow-hidden animate-scale-up">
+            
+            {/* Decorative sparkles */}
+            <div className="absolute top-4 left-6 text-amber-400/40 animate-pulse text-lg">✦</div>
+            <div className="absolute top-12 right-10 text-amber-400/60 animate-pulse delay-500 text-xl">✦</div>
+            <div className="absolute bottom-10 left-10 text-amber-400/30 animate-pulse delay-1000 text-lg">✦</div>
+            
+            {/* Falling Confetti Particles Mockup */}
+            <div className="absolute inset-0 pointer-events-none opacity-50">
+              <div className="absolute bg-amber-400 w-1.5 h-1.5 rounded-full top-4 left-1/4 animate-bounce" style={{ animationDelay: "0.1s", animationDuration: "3s" }} />
+              <div className="absolute bg-emerald-400 w-2 h-2 rounded-sm top-8 left-2/3 animate-bounce" style={{ animationDelay: "0.4s", animationDuration: "4s" }} />
+              <div className="absolute bg-purple-400 w-1 h-3 top-16 left-1/2 animate-bounce" style={{ animationDelay: "0.7s", animationDuration: "2.5s" }} />
+              <div className="absolute bg-pink-400 w-2 h-1 top-24 left-1/10 animate-bounce" style={{ animationDelay: "0.2s", animationDuration: "3.5s" }} />
+              <div className="absolute bg-blue-400 w-1.5 h-1.5 rounded-full top-32 left-4/5 animate-bounce" style={{ animationDelay: "0.9s", animationDuration: "2s" }} />
+            </div>
+
+            <div className="bg-amber-500/10 border border-amber-500/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+              <span className="text-4xl">🏆</span>
+            </div>
+
+            <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-300 tracking-wide font-sans mb-1">
+              {celebrationData.tierUpgraded ? "Tier Promotion!" : "Points Awarded!"}
+            </h3>
+            <p className="text-xs text-amber-500 font-bold uppercase tracking-widest font-sans mb-4">
+              LOYALTY UPDATE
+            </p>
+
+            <p className="text-sm text-gray-300 font-sans max-w-sm mx-auto mb-6 leading-relaxed">
+              Congratulations! <span className="font-bold text-white">{celebrationData.customerName}</span> earned <span className="font-extrabold text-amber-400">+{celebrationData.pointsEarned} points</span> on this purchase!
+            </p>
+
+            {celebrationData.tierUpgraded && (
+              <div className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 p-4.5 rounded-2xl mb-6 animate-pulse">
+                <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">VIP TIER PROMOTION</p>
+                <div className="flex items-center justify-center gap-3 mt-1.5">
+                  <span className="text-gray-400 font-bold uppercase line-through text-xs">{celebrationData.oldTier}</span>
+                  <span className="text-white text-base">➜</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-400 font-black uppercase text-base tracking-widest">{celebrationData.newTier}</span>
+                </div>
+                <p className="text-[10px] text-gray-400 mt-2">New Tier multipliers and bonus campaigns are now active on this account!</p>
+              </div>
+            )}
+
+            <button
+              onClick={() => setCelebrationData(null)}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-xs font-black text-black tracking-widest uppercase transition active:scale-95 shadow-md shadow-amber-500/20"
+            >
+              Continue Checkout
+            </button>
           </div>
         </div>
       )}

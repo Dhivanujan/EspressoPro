@@ -9,6 +9,7 @@ from app.routers.analytics import router as analytics_router
 from app.routers.customers import router as customers_router
 from app.routers.coupons import router as coupons_router
 from app.routers.websockets import router as ws_router
+from app.routers.loyalty import router as loyalty_router
 
 __all__ = [
     "auth_router",
@@ -21,5 +22,6 @@ __all__ = [
     "analytics_router",
     "customers_router",
     "coupons_router",
-    "ws_router"
+    "ws_router",
+    "loyalty_router"
 ]

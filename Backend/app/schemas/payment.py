@@ -3,10 +3,15 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional, List
 
+class SplitPaymentItem(BaseModel):
+    payment_method: str = Field(..., pattern="^(cash|card|qr|points)$")
+    amount_paid: Decimal = Field(..., ge=0.0)
+
 class PaymentCreate(BaseModel):
-    payment_method: str = Field(..., pattern="^(cash|card|qr)$")
+    payment_method: str = Field(..., pattern="^(cash|card|qr|points|split)$")
     amount_paid: Decimal = Field(..., ge=0.0)
     transaction_reference: Optional[str] = None
+    splits: Optional[List[SplitPaymentItem]] = None
 
 class PaymentResponse(BaseModel):
     id: str

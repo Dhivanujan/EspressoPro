@@ -167,17 +167,6 @@ class OrderService:
                     )
                     db.add(ing_log)
 
-        # 7. Loyalty Points Calculation and Award
-        if order_in.customer_id:
-            cust_id = order_in.customer_id
-            cust_query = ObjectId(cust_id) if isinstance(cust_id, str) and ObjectId.is_valid(cust_id) else cust_id
-            cust_doc = await db["customers"].find_one({"_id": cust_query})
-            if cust_doc:
-                customer = Customer(**cust_doc)
-                points_earned = int(float(total_amount) * settings.LOYALTY_POINT_REWARD_RATE)
-                customer.loyalty_points += points_earned
-                db.add(customer)
-
         await db.flush()
         
         # Load relationships fully for return schema
