@@ -2,6 +2,14 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+export function getProductImageUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  if (url.startsWith("/")) {
+    return `${API_BASE_URL}${url}`;
+  }
+  return url;
+}
+
 interface RequestOptions extends RequestInit {
   token?: string | null;
 }

@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Optional
 import json
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -25,6 +25,11 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: Union[str, List[str]] = ["*"]
+
+    # Cloudinary Credentials (Resilient local uploads fallback if unset)
+    CLOUDINARY_CLOUD_NAME: Optional[str] = None
+    CLOUDINARY_API_KEY: Optional[str] = None
+    CLOUDINARY_API_SECRET: Optional[str] = None
 
     # POS Config
     SHOP_NAME: str = "Daily Grind Coffee"

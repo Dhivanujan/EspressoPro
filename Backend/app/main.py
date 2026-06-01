@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.config.settings import settings
 from app.middleware.errors import setup_exception_handlers
 from app.routers import (
@@ -36,6 +37,9 @@ app.add_middleware(
 
 # 2. Setup Exception Handlers
 setup_exception_handlers(app)
+
+# Mount static folder for local upload fallback serving
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 3. Include Routers
 app.include_router(auth_router, prefix="/api/v1")

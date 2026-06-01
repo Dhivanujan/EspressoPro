@@ -4,8 +4,8 @@
 
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
-import { apiGet, apiPost, apiPut, apiDelete } from "../../lib/api";
-import { Coffee, Search, Plus, Edit3, Trash2, X, Loader2 } from "lucide-react";
+import { apiGet, apiPost, apiPut, apiDelete, getProductImageUrl } from "../../lib/api";
+import { Coffee, Search, Plus, Edit3, Trash2, X, Loader2, Upload, Link, AlertCircle } from "lucide-react";
 import Image from "next/image";
 
 interface Product {
@@ -46,6 +46,11 @@ export default function MenuManagementPage() {
   const [formCategory, setFormCategory] = useState("");
   const [formImageUrl, setFormImageUrl] = useState("");
   const [formAvailable, setFormAvailable] = useState(true);
+
+  // Upload States
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [imageInputMode, setImageInputMode] = useState<"upload" | "url">("upload");
 
   // Cohesive Tab Navigation
   const [activeTab, setActiveTab] = useState<"products" | "coupons">("products");
@@ -149,6 +154,12 @@ export default function MenuManagementPage() {
     setFormCategory(categories[0]?.id || "");
     setFormImageUrl("");
     setFormAvailable(true);
+    
+    // Reset Upload States
+    setUploading(false);
+    setUploadError(null);
+    setImageInputMode("upload");
+    
     setShowModal(true);
   };
 
@@ -162,7 +173,44 @@ export default function MenuManagementPage() {
     setFormCategory(prod.category_id || "");
     setFormImageUrl(prod.image_url || "");
     setFormAvailable(prod.availability_status);
+    
+    // Reset Upload States
+    setUploading(false);
+    setUploadError(null);
+    setImageInputMode("upload");
+    
     setShowModal(true);
+  };
+
+  // Image Upload Action Handler
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Image file size must be less than 5MB");
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await apiPost<{ url: string; provider: string }>(
+        "/api/v1/products/upload-image",
+        formData
+      );
+      setFormImageUrl(res.url);
+    } catch (err: any) {
+      console.error("Failed to upload image:", err);
+      setUploadError(err.message || "Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -368,7 +416,7 @@ export default function MenuManagementPage() {
                       <div className="relative h-48 overflow-hidden bg-gray-100 w-full shrink-0">
                         {product.image_url ? (
                           <Image
-                            src={product.image_url}
+                            src={getProductImageUrl(product.image_url)}
                             alt={product.name}
                             fill
                             className="object-cover transition duration-300 group-hover:scale-105"
@@ -636,14 +684,114 @@ export default function MenuManagementPage() {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase">Product Image URL</label>
-                  <input
-                    type="text"
-                    value={formImageUrl}
-                    onChange={(e) => setFormImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.png"
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
-                  />
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-xs font-bold text-gray-500 uppercase">Product Image</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUploadError(null);
+                        setImageInputMode(imageInputMode === "upload" ? "url" : "upload");
+                      }}
+                      className="text-xs font-bold text-[#82542a] hover:underline flex items-center gap-1"
+                    >
+                      {imageInputMode === "upload" ? (
+                        <>
+                          <Link size={12} />
+                          Paste URL instead
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={12} />
+                          Upload file instead
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {imageInputMode === "upload" ? (
+                    <div className="space-y-3">
+                      {formImageUrl ? (
+                        <div className="relative group/img rounded-xl border border-gray-200 overflow-hidden bg-gray-50 h-36 flex items-center justify-center shadow-xs">
+                          {/* Native img tag is resilient for direct/arbitrary URL previews */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getProductImageUrl(formImageUrl)}
+                            alt="Product preview"
+                            className="object-cover w-full h-full"
+                          />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition duration-200 flex flex-col items-center justify-center gap-2">
+                            <span className="text-white text-xs font-bold px-3 py-1 rounded-md bg-white/10 backdrop-blur-xs border border-white/20">
+                              Active Product Image
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormImageUrl("");
+                                setUploadError(null);
+                              }}
+                              className="flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+                            >
+                              <Trash2 size={13} />
+                              Remove Image
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className={`relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer flex flex-col items-center justify-center gap-2 transition-all min-h-32 ${
+                          uploading
+                            ? "border-gray-200 bg-gray-50 cursor-not-allowed"
+                            : "border-gray-300 hover:border-[#82542a] hover:bg-[#82542a]/5"
+                        }`}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            disabled={uploading}
+                            className="hidden"
+                          />
+                          {uploading ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <Loader2 className="animate-spin text-[#82542a]" size={24} />
+                              <p className="text-sm font-semibold text-gray-700">Uploading product image...</p>
+                              <p className="text-xs text-gray-400">Processing on Cloudinary/local storage</p>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="p-2 rounded-xl bg-amber-50 text-[#82542a]">
+                                <Upload size={20} />
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-gray-700">
+                                  Drag & drop image here, or <span className="text-[#82542a] underline">browse</span>
+                                </p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">Supports PNG, JPG, WEBP, GIF (Max 5MB)</p>
+                              </div>
+                            </div>
+                          )}
+                        </label>
+                      )}
+
+                      {uploadError && (
+                        <div className="flex items-center gap-2 bg-red-50 text-red-700 p-2.5 rounded-xl border border-red-100 text-xs font-semibold animate-scale-up">
+                          <AlertCircle size={14} className="shrink-0 text-red-600" />
+                          <span>{uploadError}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="text"
+                        value={formImageUrl}
+                        onChange={(e) => setFormImageUrl(e.target.value)}
+                        placeholder="https://example.com/image.png"
+                        className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                      />
+                      <p className="text-[10px] text-gray-400 mt-1.5 font-medium pl-1">
+                        Use this to reference external CDNs or web image URLs directly.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="col-span-2 flex items-center gap-2 pt-2">

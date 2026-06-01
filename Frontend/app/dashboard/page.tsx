@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Sidebar from "../../components/Sidebar";
 import { useAuth } from "../../lib/auth";
-import { apiGet, apiPost } from "../../lib/api";
+import { apiGet, apiPost, getProductImageUrl } from "../../lib/api";
 import {
   Coffee,
   ShoppingBag,
@@ -456,7 +456,7 @@ export default function DashboardPage() {
                 <div className="relative w-14 h-14 rounded-lg bg-gray-50 overflow-hidden shrink-0">
                   {item.product.image_url ? (
                     <Image
-                      src={item.product.image_url}
+                      src={getProductImageUrl(item.product.image_url)}
                       alt={item.product.name}
                       fill
                       className="object-cover"
@@ -888,7 +888,7 @@ export default function DashboardPage() {
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 w-full shrink-0">
                     {product.image_url ? (
                       <Image
-                        src={product.image_url}
+                        src={getProductImageUrl(product.image_url)}
                         alt={product.name}
                         fill
                         className="object-cover transition duration-500 group-hover:scale-105"

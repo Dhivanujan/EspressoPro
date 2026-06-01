@@ -1,6 +1,7 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.cloudinary_service import cloudinary_service
 from sqlalchemy import select
 from app.database.session import get_db
 from app.models.product import Product, Ingredient, ProductIngredient
@@ -269,3 +270,28 @@ async def delete_product(
     await product_repository.remove(db, id=product_id)
     await db.commit()
     return prod
+
+
+@router.post("/products/upload-image", status_code=status.HTTP_201_CREATED)
+async def upload_product_image(
+    file: UploadFile = File(...),
+    admin_user: User = Depends(RoleChecker(["admin"]))
+):
+    """
+    Upload a product image using Cloudinary or a resilient local fallback directory (Admin only).
+    """
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File uploaded must be a valid image"
+        )
+        
+    try:
+        content = await file.read()
+        url = await cloudinary_service.upload_image(content, folder="products")
+        return {"url": url, "provider": "cloudinary" if cloudinary_service.enabled else "local"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process image upload: {e}"
+        )
