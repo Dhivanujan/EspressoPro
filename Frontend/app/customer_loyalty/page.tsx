@@ -380,7 +380,7 @@ export default function CustomerManagementPage() {
                         </td>
 
                         <td className="px-6 py-4.5 font-semibold text-gray-700">
-                          ${(customer.lifetime_spending || 0).toFixed(2)}
+                          ${Number(customer.lifetime_spending || 0).toFixed(2)}
                         </td>
 
                         <td className="px-6 py-4.5 font-bold text-gray-800">
@@ -440,7 +440,7 @@ export default function CustomerManagementPage() {
                     <div className="grid grid-cols-2 gap-4.5 pt-4 border-t border-gray-100">
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block">Lifetime Spent</span>
-                        <p className="text-sm font-extrabold text-gray-950 mt-1">${(selectedCustomer.lifetime_spending || 0).toFixed(2)}</p>
+                        <p className="text-sm font-extrabold text-gray-950 mt-1">${Number(selectedCustomer.lifetime_spending || 0).toFixed(2)}</p>
                       </div>
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block">Visit Frequency</span>
@@ -449,7 +449,7 @@ export default function CustomerManagementPage() {
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block">Average Spend Size</span>
                         <p className="text-sm font-extrabold text-gray-950 mt-1">
-                          ${(selectedCustomer.visit_count > 0 ? (selectedCustomer.lifetime_spending || 0) / selectedCustomer.visit_count : 0).toFixed(2)}
+                          ${Number(selectedCustomer.visit_count > 0 ? Number(selectedCustomer.lifetime_spending || 0) / selectedCustomer.visit_count : 0).toFixed(2)}
                         </p>
                       </div>
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
