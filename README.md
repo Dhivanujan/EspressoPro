@@ -10,7 +10,7 @@ EspressoPro is a point-of-sale (POS) application tailored for coffee shops and s
 ## What you'll find here
 
 - A modern Next.js + Tailwind CSS frontend
-- A FastAPI backend with SQLAlchemy and PostgreSQL
+- A FastAPI backend with MongoDB (Motor) and Pydantic
 - Docker and docker-compose for local development
 - Tests for backend features using pytest
 
@@ -21,6 +21,7 @@ EspressoPro is a point-of-sale (POS) application tailored for coffee shops and s
 - Git
 - Python 3.10+ (recommended) or a compatible virtual environment
 - Node.js 16+ and npm/yarn
+- MongoDB 6+ (local or Docker)
 - Docker & Docker Compose (recommended for easiest local setup)
 
 ---
@@ -48,11 +49,15 @@ pip install -r requirements.txt
 
 4. Copy or create environment variables (example `.env` or set them in your shell):
 
-- `DATABASE_URL` — PostgreSQL connection string (e.g. `postgresql://user:pass@localhost:5432/espresso`)
-- `CLOUDINARY_URL` — optional (if using Cloudinary for images)
-- `SECRET_KEY` — JWT / app secret
+- `MONGODB_URL` — Mongo connection string (e.g. `mongodb://localhost:27017`)
+- `MONGODB_DB` — database name (e.g. `coffeeshop_pos`)
+- `JWT_SECRET_KEY` — JWT / app secret
 
-5. Run migrations or create the database (if using SQL scripts or Alembic).
+5. Seed sample data (optional but recommended for a working demo):
+
+```powershell
+python seed.py
+```
 
 6. Start the backend for development:
 
@@ -61,6 +66,11 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 The API will be available at `http://localhost:8000` and interactive docs at `http://localhost:8000/docs`.
+
+### Seeded login credentials
+
+- Admin: `admin` / `admin123`
+- Cashier: `cashier` / `cashier123`
 
 ---
 
@@ -107,7 +117,7 @@ cd "E:\\POS System\\Backend"
 docker-compose up --build
 ```
 
-This will create the required services (backend, database, etc.) as defined in the compose file.
+This will create the required services (backend, database, etc.) as defined in the compose file. The backend expects MongoDB via `MONGODB_URL`; update the compose file if you want MongoDB running in Docker.
 
 ---
 
