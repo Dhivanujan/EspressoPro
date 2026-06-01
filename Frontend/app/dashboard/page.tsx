@@ -20,6 +20,7 @@ import {
   Loader2,
   Trash2,
   CheckCircle2,
+  X,
 } from "lucide-react";
 
 interface Category {
@@ -54,6 +55,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
+
+  // Responsive Drawer & Receipt Modal States
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [receiptData, setReceiptData] = useState<any | null>(null);
 
   // Loyalty & Discount
   const [couponCode, setCouponCode] = useState("");
@@ -212,6 +217,29 @@ export default function DashboardPage() {
 
       await apiPost<any>(`/api/v1/payments/${order.id}`, paymentPayload);
 
+      // Calculate amount paid and change for cash
+      let amountPaid = total;
+      let changeAmount = 0;
+      if (method === "cash") {
+        const rounded = Math.ceil(total / 5) * 5;
+        amountPaid = rounded;
+        changeAmount = rounded - total;
+      }
+
+      setReceiptData({
+        orderNumber: order.order_number,
+        items: [...cart],
+        subtotal: subtotal,
+        discount: discount,
+        couponCode: appliedCoupon ? appliedCoupon.code : "NONE",
+        tax: tax,
+        total: total,
+        paymentMethod: method,
+        amountPaid: amountPaid,
+        changeAmount: changeAmount,
+        timestamp: new Date().toLocaleString(),
+      });
+
       // Refresh stock values locally
       const fetchedProds = await apiGet<Product[]>("/api/v1/products");
       const formattedProds = fetchedProds.map((p) => ({
@@ -226,11 +254,239 @@ export default function DashboardPage() {
       clearCart();
       setCustomer(null);
       setCustomerPhone("");
+      setCartDrawerOpen(false);
     } catch (err: any) {
       alert(err.message || "Failed to process order checkout.");
     } finally {
       setCheckoutLoading(false);
     }
+  };
+
+  const renderCart = (isDrawer = false) => {
+    return (
+      <div className="flex flex-col h-full bg-white">
+        {/* Only show header inside aside if it is NOT the drawer */}
+        {!isDrawer && (
+          <div className="border-b border-gray-200 p-6 shrink-0">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#170f0a]">
+                Current Ticket
+              </h2>
+              {cart.length > 0 && (
+                <button
+                  onClick={clearCart}
+                  className="text-xs font-semibold text-red-500 hover:underline flex items-center gap-1"
+                >
+                  <Trash2 size={13} />
+                  Clear
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-400">
+              Dine-in or Takeaway Terminal
+            </p>
+          </div>
+        )}
+
+        {/* Cart items */}
+        <div className="flex-1 space-y-4 overflow-y-auto p-6">
+          {cart.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 gap-3">
+              <ShoppingBag size={48} className="stroke-[1.5]" />
+              <p className="text-sm font-medium">Ticket is empty.</p>
+            </div>
+          ) : (
+            cart.map((item) => (
+              <div
+                key={item.product.id}
+                className="flex gap-3 bg-white p-3 rounded-xl border border-gray-100"
+              >
+                <div className="relative w-14 h-14 rounded-lg bg-gray-50 overflow-hidden shrink-0">
+                  {item.product.image_url ? (
+                    <Image
+                      src={item.product.image_url}
+                      alt={item.product.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-700">
+                      <Coffee size={16} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 overflow-hidden">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-semibold text-sm truncate">
+                      {item.product.name}
+                    </h3>
+                    <span className="font-bold text-sm shrink-0">
+                      ${(item.product.price * item.quantity).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-400 mb-2.5">
+                    ${item.product.price.toFixed(2)} each
+                  </p>
+
+                  <div className="flex items-center gap-3.5">
+                    <button
+                      onClick={() => updateQuantity(item.product.id, -1)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border hover:bg-gray-50 active:scale-95 transition"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="text-sm font-bold">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.product.id, 1)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border hover:bg-gray-50 active:scale-95 transition"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Loyalty & Coupon Integrations */}
+        {cart.length > 0 && (
+          <div className="border-t border-gray-100 p-6 space-y-4 shrink-0 bg-gray-50/50">
+            {/* Loyalty Lookup */}
+            <div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Loyalty phone number..."
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                />
+                <button
+                  onClick={handleLookupCustomer}
+                  className="text-xs font-bold px-4 py-2 border rounded-xl hover:bg-white transition bg-gray-50 hover:shadow-xs active:scale-95"
+                >
+                  Lookup
+                </button>
+              </div>
+              {customer && (
+                <div className="mt-2 text-xs bg-emerald-50 text-emerald-800 p-2.5 rounded-lg border border-emerald-100 animate-scale-up">
+                  <p className="font-bold">{customer.name}</p>
+                  <p className="mt-0.5">Points: {customer.loyalty_points}</p>
+                </div>
+              )}
+              {customerError && (
+                <p className="text-[10px] text-red-500 mt-1 font-semibold">{customerError}</p>
+              )}
+            </div>
+
+            {/* Coupon Application */}
+            <div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Coupon code..."
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                />
+                <button
+                  onClick={handleApplyCoupon}
+                  className="text-xs font-bold px-4 py-2 border rounded-xl hover:bg-white transition bg-gray-50 hover:shadow-xs active:scale-95"
+                >
+                  Apply
+                </button>
+              </div>
+              {appliedCoupon && (
+                <div className="mt-2 text-xs bg-amber-50 text-amber-800 p-2.5 rounded-lg border border-amber-100 flex justify-between items-center animate-scale-up">
+                  <span className="font-medium">Coupon {appliedCoupon.code} applied!</span>
+                  <button onClick={() => setAppliedCoupon(null)} className="text-red-500 font-bold hover:bg-red-100 rounded p-0.5 px-1.5 transition">X</button>
+                </div>
+              )}
+              {couponError && (
+                <p className="text-[10px] text-red-500 mt-1 font-semibold">{couponError}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Checkout & Totalizer */}
+        <div className="border-t border-gray-200 p-6 shrink-0 bg-white">
+          <div className="mb-5 space-y-2">
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>Subtotal</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+
+            {discount > 0 && (
+              <div className="flex justify-between text-sm text-amber-600 font-bold animate-scale-up">
+                <span>Discount</span>
+                <span>-${discount.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>Tax (10%)</span>
+              <span>${tax.toFixed(2)}</span>
+            </div>
+
+            <div className="flex justify-between pt-2 border-t border-gray-100">
+              <span className="text-base font-extrabold text-[#170f0a]">Total</span>
+              <span className="text-xl font-extrabold text-[#82542a]">
+                ${total.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <button
+              onClick={() => handleCheckout("cash")}
+              disabled={checkoutLoading || cart.length === 0}
+              className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
+            >
+              <Banknote size={18} className="mb-1 text-gray-400" />
+              Cash
+            </button>
+            <button
+              onClick={() => handleCheckout("card")}
+              disabled={checkoutLoading || cart.length === 0}
+              className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
+            >
+              <CreditCard size={18} className="mb-1 text-gray-400" />
+              Card
+            </button>
+            <button
+              onClick={() => handleCheckout("qr")}
+              disabled={checkoutLoading || cart.length === 0}
+              className="flex flex-col h-14 items-center justify-center rounded-xl border border-[#82542a] bg-[#82542a]/5 hover:bg-[#82542a]/10 active:scale-95 transition text-xs font-bold text-[#82542a] disabled:opacity-50"
+            >
+              <QrCode size={18} className="mb-1 text-[#82542a]" />
+              QR Pay
+            </button>
+          </div>
+
+          <button
+            onClick={() => handleCheckout("cash")}
+            disabled={checkoutLoading || cart.length === 0}
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#170f0a] text-base font-bold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+          >
+            {checkoutLoading ? (
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                Processing Ticket...
+              </>
+            ) : (
+              <>
+                <CreditCard size={18} />
+                Checkout Total: ${total.toFixed(2)}
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -390,225 +646,198 @@ export default function DashboardPage() {
       </main>
 
       {/* Cart Sidebar */}
-      <aside className="hidden xl:flex w-[400px] flex-col border-l border-gray-200 bg-white/80 backdrop-blur-xl">
-        <div className="border-b border-gray-200 p-6 shrink-0">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#170f0a]">
-              Current Ticket
-            </h2>
-            {cart.length > 0 && (
-              <button
-                onClick={clearCart}
-                className="text-xs font-semibold text-red-500 hover:underline flex items-center gap-1"
-              >
-                <Trash2 size={13} />
-                Clear
-              </button>
-            )}
+      <aside className="hidden xl:flex w-[400px] flex-col border-l border-gray-200 bg-white/80 backdrop-blur-xl shrink-0">
+        {renderCart()}
+      </aside>
+
+      {/* Floating Ticket Indicator for Mobile/Tablets */}
+      {cart.length > 0 && (
+        <button
+          onClick={() => setCartDrawerOpen(true)}
+          className="xl:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2.5 rounded-full bg-[#170f0a] px-6 py-4 font-bold text-white shadow-xl hover:opacity-90 active:scale-95 transition-all shadow-[#2d241e]/30"
+        >
+          <ShoppingBag size={20} className="text-[#febf8c]" />
+          <span>View Ticket</span>
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#82542a] text-[10px] text-white">
+            {cart.reduce((sum, item) => sum + item.quantity, 0)}
+          </span>
+          <span className="border-l border-white/20 pl-2.5 text-[#febf8c]">
+            ${total.toFixed(2)}
+          </span>
+        </button>
+      )}
+
+      {/* Mobile Cart Drawer Overlay */}
+      {cartDrawerOpen && (
+        <div
+          className="xl:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-300"
+          onClick={() => setCartDrawerOpen(false)}
+        />
+      )}
+
+      {/* Mobile Cart Drawer Panel */}
+      <div
+        className={`xl:hidden fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-300 transform ${
+          cartDrawerOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between border-b border-gray-200 p-5 shrink-0">
+          <div>
+            <h2 className="text-lg font-bold text-[#170f0a]">Current Ticket</h2>
+            <p className="text-xs text-gray-400">Mobile Checkout Terminal</p>
           </div>
-          <p className="text-xs text-gray-400">
-            Dine-in or Takeaway Terminal
-          </p>
-        </div>
-
-        {/* Cart items */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-6">
-          {cart.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 gap-3">
-              <ShoppingBag size={48} className="stroke-[1.5]" />
-              <p className="text-sm font-medium">Ticket is empty.</p>
-            </div>
-          ) : (
-            cart.map((item) => (
-              <div
-                key={item.product.id}
-                className="flex gap-3 bg-white p-3 rounded-xl border border-gray-100"
-              >
-                <div className="relative w-14 h-14 rounded-lg bg-gray-50 overflow-hidden shrink-0">
-                  {item.product.image_url ? (
-                    <Image
-                      src={item.product.image_url}
-                      alt={item.product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-700">
-                      <Coffee size={16} />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-semibold text-sm truncate">
-                      {item.product.name}
-                    </h3>
-                    <span className="font-bold text-sm shrink-0">
-                      ${(item.product.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-gray-400 mb-2.5">
-                    ${item.product.price.toFixed(2)} each
-                  </p>
-
-                  <div className="flex items-center gap-3.5">
-                    <button
-                      onClick={() => updateQuantity(item.product.id, -1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border hover:bg-gray-50 active:scale-95"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="text-sm font-bold">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.product.id, 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border hover:bg-gray-50 active:scale-95"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Loyalty & Coupon Integrations */}
-        {cart.length > 0 && (
-          <div className="border-t border-gray-100 p-6 space-y-4 shrink-0 bg-gray-50/50">
-            {/* Loyalty Lookup */}
-            <div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Loyalty phone number..."
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a]"
-                />
-                <button
-                  onClick={handleLookupCustomer}
-                  className="text-xs font-semibold px-4 py-2 border rounded-xl hover:bg-white transition"
-                >
-                  Lookup
-                </button>
-              </div>
-              {customer && (
-                <div className="mt-2 text-xs bg-emerald-50 text-emerald-800 p-2 rounded-lg border border-emerald-100">
-                  <p className="font-bold">{customer.name}</p>
-                  <p>Points: {customer.loyalty_points}</p>
-                </div>
-              )}
-              {customerError && (
-                <p className="text-[10px] text-red-500 mt-1 font-medium">{customerError}</p>
-              )}
-            </div>
-
-            {/* Coupon Application */}
-            <div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Coupon code..."
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a]"
-                />
-                <button
-                  onClick={handleApplyCoupon}
-                  className="text-xs font-semibold px-4 py-2 border rounded-xl hover:bg-white transition"
-                >
-                  Apply
-                </button>
-              </div>
-              {appliedCoupon && (
-                <div className="mt-2 text-xs bg-amber-50 text-amber-800 p-2 rounded-lg border border-amber-100 flex justify-between">
-                  <span>Coupon {appliedCoupon.code} applied!</span>
-                  <button onClick={() => setAppliedCoupon(null)} className="text-red-500 font-bold">X</button>
-                </div>
-              )}
-              {couponError && (
-                <p className="text-[10px] text-red-500 mt-1 font-medium">{couponError}</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Checkout & Totalizer */}
-        <div className="border-t border-gray-200 p-6 shrink-0 bg-white">
-          <div className="mb-5 space-y-2">
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
-
-            {discount > 0 && (
-              <div className="flex justify-between text-sm text-amber-600 font-medium">
-                <span>Discount</span>
-                <span>-${discount.toFixed(2)}</span>
-              </div>
-            )}
-
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Tax (10%)</span>
-              <span>${tax.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between pt-2 border-t border-gray-100">
-              <span className="text-base font-bold">Total</span>
-              <span className="text-xl font-bold text-[#82542a]">
-                ${total.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            <button
-              onClick={() => handleCheckout("cash")}
-              disabled={checkoutLoading || cart.length === 0}
-              className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
-            >
-              <Banknote size={18} className="mb-1 text-gray-400" />
-              Cash
-            </button>
-            <button
-              onClick={() => handleCheckout("card")}
-              disabled={checkoutLoading || cart.length === 0}
-              className="flex flex-col h-14 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-95 transition text-xs font-bold text-gray-700 disabled:opacity-50"
-            >
-              <CreditCard size={18} className="mb-1 text-gray-400" />
-              Card
-            </button>
-            <button
-              onClick={() => handleCheckout("qr")}
-              disabled={checkoutLoading || cart.length === 0}
-              className="flex flex-col h-14 items-center justify-center rounded-xl border border-[#82542a] bg-[#82542a]/5 hover:bg-[#82542a]/10 active:scale-95 transition text-xs font-bold text-[#82542a] disabled:opacity-50"
-            >
-              <QrCode size={18} className="mb-1 text-[#82542a]" />
-              QR Pay
-            </button>
-          </div>
-
           <button
-            onClick={() => handleCheckout("cash")}
-            disabled={checkoutLoading || cart.length === 0}
-            className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#170f0a] text-base font-bold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+            onClick={() => setCartDrawerOpen(false)}
+            className="rounded-lg p-1.5 hover:bg-gray-50 text-gray-400 hover:text-black transition"
           >
-            {checkoutLoading ? (
-              <>
-                <Loader2 className="animate-spin" size={18} />
-                Processing Ticket...
-              </>
-            ) : (
-              <>
-                <CreditCard size={18} />
-                Checkout Total: ${total.toFixed(2)}
-              </>
-            )}
+            <X size={20} />
           </button>
         </div>
-      </aside>
+
+        <div className="flex-1 overflow-y-auto">
+          {renderCart(true)}
+        </div>
+      </div>
+
+      {/* Thermal Receipt Modal */}
+      {receiptData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl flex flex-col items-center border max-h-[90vh] overflow-y-auto animate-scale-up">
+            {/* Realistic Thermal Paper Styling */}
+            <div className="w-full bg-[#faf8f5] border border-gray-200 shadow-inner p-5 font-mono text-xs text-gray-800 rounded-lg relative overflow-hidden select-none">
+              {/* Paper Top Jagged Edge Mockup */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[radial-gradient(ellipse_at_top,_#e2e8f0_2px,_transparent_0)] bg-[length:8px_8px] bg-repeat-x"></div>
+              
+              <div className="text-center space-y-1 mt-2">
+                <Coffee className="mx-auto text-[#82542a] mb-1" size={24} />
+                <h3 className="font-extrabold text-sm tracking-widest text-black">ESPRESSOPRO CAFE</h3>
+                <p className="text-[10px] text-gray-500">128 Barista Ave, Brew Town</p>
+                <p className="text-[10px] text-gray-500">Tel: +1 (555) 987-6543</p>
+              </div>
+
+              <div className="border-b border-dashed border-gray-300 my-4"></div>
+
+              <div className="space-y-1 text-[10px] text-gray-600">
+                <div className="flex justify-between">
+                  <span>RECEIPT NO:</span>
+                  <span className="font-bold text-black">{receiptData.orderNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>DATE:</span>
+                  <span>{receiptData.timestamp}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>CASHIER:</span>
+                  <span className="capitalize">{user ? user.full_name : "Store Cashier"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>MODE:</span>
+                  <span className="uppercase font-bold text-black">{receiptData.paymentMethod}</span>
+                </div>
+              </div>
+
+              <div className="border-b border-dashed border-gray-300 my-4"></div>
+
+              {/* Items Table */}
+              <div className="space-y-2">
+                <div className="flex justify-between font-bold text-black text-[10px]">
+                  <span>ITEM</span>
+                  <span>TOTAL</span>
+                </div>
+                {receiptData.items.map((item: any, idx: number) => (
+                  <div key={idx} className="flex justify-between text-[11px]">
+                    <div className="truncate max-w-[200px]">
+                      <span>{item.quantity}x {item.product.name}</span>
+                      <p className="text-[9px] text-gray-500 pl-4">${item.product.price.toFixed(2)} each</p>
+                    </div>
+                    <span className="font-semibold text-black">${(item.product.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-b border-dashed border-gray-300 my-4"></div>
+
+              {/* Calculations */}
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>${receiptData.subtotal.toFixed(2)}</span>
+                </div>
+                
+                {receiptData.discount > 0 && (
+                  <div className="flex justify-between text-amber-700 font-semibold">
+                    <span>Discount ({receiptData.couponCode})</span>
+                    <span>-${receiptData.discount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between">
+                  <span>VAT/Tax (10%)</span>
+                  <span>${receiptData.tax.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between font-extrabold text-black text-sm pt-1 border-t border-dotted">
+                  <span>TOTAL</span>
+                  <span>${receiptData.total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {receiptData.paymentMethod === "cash" && (
+                <div className="space-y-1 text-[10px] text-gray-600 pt-3 mt-2 border-t border-dashed">
+                  <div className="flex justify-between">
+                    <span>CASH TENDERED:</span>
+                    <span>${receiptData.amountPaid.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-black font-bold">
+                    <span>CHANGE DUE:</span>
+                    <span>${receiptData.changeAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="border-b border-dashed border-gray-300 my-4"></div>
+
+              {/* Barcode Mockup & Greeting */}
+              <div className="text-center space-y-2 mt-2">
+                <p className="text-[10px] font-bold text-black italic">&quot;Brewed with love! See you soon!&quot;</p>
+                
+                {/* Barcode Mockup */}
+                <div className="flex justify-center items-center h-8 gap-[1px] opacity-75 mt-3 select-none">
+                  {[3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 3, 1, 2, 1, 4, 2, 3, 1, 2, 4, 1, 3].map((w, i) => (
+                    <div
+                      key={i}
+                      className="bg-black h-full"
+                      style={{ width: `${w}px` }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[8px] text-gray-400 tracking-[0.25em]">{receiptData.orderNumber}</p>
+              </div>
+
+              {/* Paper Bottom Jagged Edge Mockup */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-[radial-gradient(ellipse_at_bottom,_#e2e8f0_2px,_transparent_0)] bg-[length:8px_8px] bg-repeat-y transform rotate-180"></div>
+            </div>
+
+            {/* Print/Dismiss Actions */}
+            <div className="w-full flex gap-3 mt-5">
+              <button
+                onClick={() => {
+                  alert("Receipt successfully sent to Barista Thermal Printer!");
+                }}
+                className="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition active:scale-95"
+              >
+                Print Ticket
+              </button>
+              <button
+                onClick={() => setReceiptData(null)}
+                className="flex-1 rounded-xl bg-[#170f0a] py-3 text-xs font-bold text-white hover:opacity-90 transition active:scale-95"
+              >
+                New Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

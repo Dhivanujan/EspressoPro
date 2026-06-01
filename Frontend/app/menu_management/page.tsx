@@ -47,6 +47,19 @@ export default function MenuManagementPage() {
   const [formImageUrl, setFormImageUrl] = useState("");
   const [formAvailable, setFormAvailable] = useState(true);
 
+  // Cohesive Tab Navigation
+  const [activeTab, setActiveTab] = useState<"products" | "coupons">("products");
+
+  // Coupon Manager States
+  const [coupons, setCoupons] = useState<any[]>([]);
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [couponFormCode, setCouponFormCode] = useState("");
+  const [couponFormType, setCouponFormType] = useState("percentage");
+  const [couponFormValue, setCouponFormValue] = useState("");
+  const [couponFormExpiry, setCouponFormExpiry] = useState("");
+  const [couponFormActive, setCouponFormActive] = useState(true);
+  const [couponModalLoading, setCouponModalLoading] = useState(false);
+
   async function loadData() {
     setLoading(true);
     try {
@@ -59,12 +72,67 @@ export default function MenuManagementPage() {
         price: Number(p.price),
       }));
       setProducts(formattedProds);
+
+      const fetchedCoupons = await apiGet<any[]>("/api/v1/coupons");
+      setCoupons(fetchedCoupons);
     } catch (err) {
       console.error("Failed to load POS data", err);
     } finally {
       setLoading(false);
     }
   }
+
+  const handleCouponSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponFormCode || !couponFormValue || !couponFormExpiry) return;
+    setCouponModalLoading(true);
+    try {
+      const payload = {
+        code: couponFormCode.toUpperCase(),
+        discount_type: couponFormType,
+        discount_value: parseFloat(couponFormValue),
+        active: couponFormActive,
+        expiry_date: new Date(couponFormExpiry).toISOString(),
+      };
+
+      await apiPost("/api/v1/coupons", payload);
+      setShowCouponModal(false);
+      setCouponFormCode("");
+      setCouponFormValue("");
+      setCouponFormExpiry("");
+      setCouponFormActive(true);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || "Failed to create promotion coupon.");
+    } finally {
+      setCouponModalLoading(false);
+    }
+  };
+
+  const handleCouponDelete = async (couponId: string) => {
+    if (!confirm("Are you sure you want to delete this promotional coupon?")) return;
+    try {
+      await apiDelete(`/api/v1/coupons/${couponId}`);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete coupon.");
+    }
+  };
+
+  const toggleCouponStatus = async (coupon: any) => {
+    try {
+      await apiPut(`/api/v1/coupons/${coupon.id}`, {
+        active: !coupon.active,
+      });
+      setCoupons(
+        coupons.map((c) =>
+          c.id === coupon.id ? { ...c, active: !c.active } : c
+        )
+      );
+    } catch (err) {
+      console.error("Failed to toggle coupon status", err);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -175,174 +243,306 @@ export default function MenuManagementPage() {
       {/* Content Area */}
       <main className="flex-1 overflow-y-auto flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/80 backdrop-blur-lg px-8 py-5">
-          <div>
-            <h1 className="text-xl font-bold text-[#170f0a]">Menu Editor</h1>
-            <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
-              Barista Config
-            </p>
+        <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/80 backdrop-blur-lg px-8 shrink-0">
+          <div className="flex items-center justify-between py-5">
+            <div>
+              <h1 className="text-xl font-bold text-[#170f0a]">Catalog & Promotions</h1>
+              <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
+                Barista & Store Configuration
+              </p>
+            </div>
+
+            {activeTab === "products" ? (
+              <button
+                onClick={handleOpenAdd}
+                className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+              >
+                <Plus size={18} />
+                Add Menu Item
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setCouponFormCode("");
+                  setCouponFormValue("");
+                  setCouponFormExpiry("");
+                  setCouponFormActive(true);
+                  setShowCouponModal(true);
+                }}
+                className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+              >
+                <Plus size={18} />
+                Create Coupon
+              </button>
+            )}
           </div>
 
-          <button
-            onClick={handleOpenAdd}
-            className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
-          >
-            <Plus size={18} />
-            Add Menu Item
-          </button>
+          {/* Sub Navigation Tabs */}
+          <div className="flex gap-6 text-sm font-bold pb-1">
+            <button
+              onClick={() => setActiveTab("products")}
+              className={`pb-3 border-b-2 transition-all ${
+                activeTab === "products"
+                  ? "border-[#82542a] text-[#82542a]"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              Menu Products ({products.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("coupons")}
+              className={`pb-3 border-b-2 transition-all ${
+                activeTab === "coupons"
+                  ? "border-[#82542a] text-[#82542a]"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              Discount Coupons ({coupons.length})
+            </button>
+          </div>
         </header>
 
         {/* Filters and List */}
         <div className="p-8 flex-1">
-          <div className="mb-8 flex flex-col md:flex-row gap-4 md:items-center justify-between">
-            <div className="relative w-full max-w-sm">
-              <Search
-                size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="Search menu catalog..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
-              />
-            </div>
+          {activeTab === "products" ? (
+            <>
+              <div className="mb-8 flex flex-col md:flex-row gap-4 md:items-center justify-between">
+                <div className="relative w-full max-w-sm">
+                  <Search
+                    size={16}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search menu catalog..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                  />
+                </div>
 
-            {/* Category Select tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-1 shrink-0">
-              <button
-                onClick={() => setSelectedCategory("all")}
-                className={`rounded-xl px-4 py-2 text-xs font-bold border transition ${
-                  selectedCategory === "all"
-                    ? "bg-[#2d241e] border-[#2d241e] text-white"
-                    : "bg-white text-gray-500 hover:bg-gray-50"
-                }`}
-              >
-                All
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`rounded-xl px-4 py-2 text-xs font-bold border transition ${
-                    selectedCategory === cat.id
-                      ? "bg-[#2d241e] border-[#2d241e] text-white"
-                      : "bg-white text-gray-500 hover:bg-gray-50"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
+                {/* Category Select tabs */}
+                <div className="flex gap-2 overflow-x-auto pb-1 shrink-0">
+                  <button
+                    onClick={() => setSelectedCategory("all")}
+                    className={`rounded-xl px-4 py-2 text-xs font-bold border transition ${
+                      selectedCategory === "all"
+                        ? "bg-[#2d241e] border-[#2d241e] text-white"
+                        : "bg-white text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`rounded-xl px-4 py-2 text-xs font-bold border transition ${
+                        selectedCategory === cat.id
+                          ? "bg-[#2d241e] border-[#2d241e] text-white"
+                          : "bg-white text-gray-500 hover:bg-gray-50"
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 className="animate-spin text-[#82542a]" size={36} />
-              <p className="text-gray-500 font-medium">Fetching café catalog...</p>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-20 bg-white border border-dashed rounded-2xl p-8">
-              <p className="text-gray-500 font-semibold">No menu products found.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col h-full"
-                >
-                  <div className="relative h-48 overflow-hidden bg-gray-100 w-full shrink-0">
-                    {product.image_url ? (
-                      <Image
-                        src={product.image_url}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-800">
-                        <Coffee size={36} />
-                      </div>
-                    )}
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <Loader2 className="animate-spin text-[#82542a]" size={36} />
+                  <p className="text-gray-500 font-medium">Fetching café catalog...</p>
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="text-center py-20 bg-white border border-dashed rounded-2xl p-8">
+                  <p className="text-gray-500 font-semibold">No menu products found.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col h-full"
+                    >
+                      <div className="relative h-48 overflow-hidden bg-gray-100 w-full shrink-0">
+                        {product.image_url ? (
+                          <Image
+                            src={product.image_url}
+                            alt={product.name}
+                            fill
+                            className="object-cover transition duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-800">
+                            <Coffee size={36} />
+                          </div>
+                        )}
 
-                    {!product.availability_status && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs">
-                        <span className="rounded-lg bg-white px-3 py-1 text-xs font-extrabold tracking-widest text-black shadow-sm">
-                          SOLD OUT
-                        </span>
-                      </div>
-                    )}
+                        {!product.availability_status && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs">
+                            <span className="rounded-lg bg-white px-3 py-1 text-xs font-extrabold tracking-widest text-black shadow-sm">
+                              SOLD OUT
+                            </span>
+                          </div>
+                        )}
 
-                    <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-[#82542a] shadow-sm">
-                      ${product.price.toFixed(2)}
-                    </div>
-                  </div>
-
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
-                          {product.name}
-                        </h3>
-                        <div className="flex gap-1 shrink-0">
-                          <button
-                            onClick={() => handleOpenEdit(product)}
-                            className="rounded-lg p-1.5 transition text-gray-400 hover:text-black hover:bg-gray-50"
-                          >
-                            <Edit3 size={15} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product.id)}
-                            className="rounded-lg p-1.5 transition text-gray-400 hover:text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                        <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-[#82542a] shadow-sm">
+                          ${product.price.toFixed(2)}
                         </div>
                       </div>
 
-                      <p className="text-xs font-semibold text-gray-400 uppercase mt-0.5 mb-3">
-                        {categories.find((c) => c.id === product.category_id)?.name || "Brew Item"}
-                      </p>
+                      <div className="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="text-lg font-bold text-gray-900 line-clamp-1">
+                              {product.name}
+                            </h3>
+                            <div className="flex gap-1 shrink-0">
+                              <button
+                                onClick={() => handleOpenEdit(product)}
+                                className="rounded-lg p-1.5 transition text-gray-400 hover:text-black hover:bg-gray-50"
+                              >
+                                <Edit3 size={15} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(product.id)}
+                                className="rounded-lg p-1.5 transition text-gray-400 hover:text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </div>
 
-                      <p className="text-sm leading-relaxed text-gray-600 line-clamp-2">
-                        {product.description || "Barista coffee crafted to perfection."}
-                      </p>
+                          <p className="text-xs font-semibold text-gray-400 uppercase mt-0.5 mb-3">
+                            {categories.find((c) => c.id === product.category_id)?.name || "Brew Item"}
+                          </p>
+
+                          <p className="text-sm leading-relaxed text-gray-600 line-clamp-2">
+                            {product.description || "Barista coffee crafted to perfection."}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-gray-100 pt-4 mt-5">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`h-2.5 w-2.5 rounded-full ${
+                                product.availability_status ? "bg-emerald-500" : "bg-red-500"
+                              }`}
+                            />
+                            <span className="text-xs font-semibold text-gray-500">
+                              {product.availability_status ? "In Stock" : "Inactive"}
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() => toggleAvailability(product)}
+                            className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                              product.availability_status
+                                ? "bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                                : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200"
+                            }`}
+                          >
+                            {product.availability_status ? "Set Out" : "Set Active"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            // Coupons Promotions directory list
+            <>
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <Loader2 className="animate-spin text-[#82542a]" size={36} />
+                  <p className="text-gray-500 font-medium">Loading promotional campaigns...</p>
+                </div>
+              ) : coupons.length === 0 ? (
+                <div className="text-center py-20 bg-white border border-dashed rounded-2xl p-8">
+                  <p className="text-gray-500 font-semibold">No promotional coupon codes registered yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {coupons.map((coupon) => (
+                    <div
+                      key={coupon.id}
+                      className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex justify-between items-start">
+                          <span className="font-extrabold tracking-wider bg-[#febf8c]/35 text-[#82542a] border border-[#febf8c]/40 px-3.5 py-1 rounded-xl text-sm font-mono uppercase">
+                            {coupon.code}
+                          </span>
+                          
+                          <button
+                            onClick={() => handleCouponDelete(coupon.id)}
+                            className="rounded-lg p-1.5 transition text-gray-400 hover:text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
 
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-4 mt-5">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`h-2.5 w-2.5 rounded-full ${
-                            product.availability_status ? "bg-emerald-500" : "bg-red-500"
-                          }`}
-                        />
-                        <span className="text-xs font-semibold text-gray-500">
-                          {product.availability_status ? "In Stock" : "Inactive"}
-                        </span>
+                        <div className="mt-4 space-y-1">
+                          <p className="text-2xl font-black text-gray-900">
+                            {coupon.discount_type === "percentage" 
+                              ? `${coupon.discount_value}% OFF` 
+                              : `$${Number(coupon.discount_value).toFixed(2)} OFF`}
+                          </p>
+                          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                            {coupon.discount_type} discount
+                          </p>
+                        </div>
+
+                        <div className="mt-4 text-xs text-gray-500 space-y-1.5 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                          <div className="flex justify-between">
+                            <span>Expiry Date:</span>
+                            <span className="font-bold text-gray-700">
+                              {new Date(coupon.expiry_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Created:</span>
+                            <span>{new Date(coupon.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
                       </div>
 
-                      <button
-                        onClick={() => toggleAvailability(product)}
-                        className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
-                          product.availability_status
-                            ? "bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
-                            : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200"
-                        }`}
-                      >
-                        {product.availability_status ? "Set Out" : "Set Active"}
-                      </button>
+                      <div className="flex items-center justify-between border-t border-gray-100 pt-4 mt-5">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`h-2.5 w-2.5 rounded-full ${
+                              coupon.active ? "bg-emerald-500 animate-pulse" : "bg-red-500"
+                            }`}
+                          />
+                          <span className="text-xs font-semibold text-gray-500">
+                            {coupon.active ? "Active Promo" : "Disabled"}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => toggleCouponStatus(coupon)}
+                          className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                            coupon.active
+                              ? "bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                              : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-200"
+                          }`}
+                        >
+                          {coupon.active ? "Deactivate" : "Activate"}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
       </main>
 
-      {/* Add / Edit Modal */}
+      {/* Add / Edit Menu Item Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-scale-up border">
@@ -430,6 +630,7 @@ export default function MenuManagementPage() {
                     required
                     value={formThreshold}
                     onChange={(e) => setFormThreshold(e.target.value)}
+                    placeholder="10"
                     className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
                   />
                 </div>
@@ -474,6 +675,106 @@ export default function MenuManagementPage() {
                 >
                   {modalLoading && <Loader2 className="animate-spin" size={14} />}
                   Save Product
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Coupon Modal */}
+      {showCouponModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-scale-up border">
+            <div className="flex justify-between items-center pb-4 border-b">
+              <h2 className="text-base font-bold text-gray-900">Create New Coupon</h2>
+              <button
+                onClick={() => setShowCouponModal(false)}
+                className="text-gray-400 hover:text-black p-1 hover:bg-gray-50 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCouponSubmit} className="mt-4 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase">Coupon Code</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. LATTE50"
+                  value={couponFormCode}
+                  onChange={(e) => setCouponFormCode(e.target.value.toUpperCase())}
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10 uppercase font-mono tracking-wider"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Type</label>
+                  <select
+                    value={couponFormType}
+                    onChange={(e) => setCouponFormType(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a]"
+                  >
+                    <option value="percentage">Percentage (%)</option>
+                    <option value="fixed">Fixed Cash ($)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Value</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="10.00"
+                    value={couponFormValue}
+                    onChange={(e) => setCouponFormValue(e.target.value)}
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase">Expiry Date</label>
+                <input
+                  type="date"
+                  required
+                  value={couponFormExpiry}
+                  onChange={(e) => setCouponFormExpiry(e.target.value)}
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="coupon_active"
+                  checked={couponFormActive}
+                  onChange={(e) => setCouponFormActive(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-[#82542a] focus:ring-[#82542a]"
+                />
+                <label htmlFor="coupon_active" className="text-sm font-semibold text-gray-700">
+                  Coupon is active to use
+                </label>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-4 border-t mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowCouponModal(false)}
+                  className="rounded-xl border px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={couponModalLoading}
+                  className="flex items-center gap-1.5 rounded-xl bg-[#170f0a] px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  {couponModalLoading && <Loader2 className="animate-spin" size={12} />}
+                  Create Promo
                 </button>
               </div>
             </form>
