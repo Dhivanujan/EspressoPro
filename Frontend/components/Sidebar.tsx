@@ -18,6 +18,7 @@ import {
   User as UserIcon,
   Menu,
   X,
+  UserCog,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -63,6 +64,12 @@ export default function Sidebar() {
       href: "/admin_dashboard",
       icon: <BarChart2 size={20} />,
       label: "Admin Insights",
+      roles: ["admin"],
+    },
+    {
+      href: "/cashier_management",
+      icon: <UserCog size={20} />,
+      label: "Staff Registry",
       roles: ["admin"],
     },
   ];

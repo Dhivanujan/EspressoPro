@@ -32,11 +32,27 @@ async def test_order_checkout_and_cancellation_cycle(
         low_stock_threshold=2,
         availability_status=True
     )
-    cust = Customer(name="David Miller", phone="+1999999", loyalty_points=0)
+    cust = Customer(
+        name="David Miller",
+        phone="+1999999",
+        loyalty_points=0,
+        lifetime_spending=0.0,
+        lifetime_points=0,
+        tier="Bronze",
+        visit_count=0,
+        birthdate=None
+    )
     db_session.add_all([prod, cust])
     await db_session.commit()
     await db_session.refresh(prod)
     await db_session.refresh(cust)
+    await db_session["loyalty_config"].insert_one({
+        "currency_per_point": 10.0,
+        "redemption_value_per_point": 1.0,
+        "tier_multipliers": {"Bronze": 1.0, "Silver": 1.1, "Gold": 1.25, "Platinum": 1.5},
+        "tier_thresholds": {"Bronze": 0.0, "Silver": 200.0, "Gold": 500.0, "Platinum": 1000.0},
+        "points_expiry_days": 365
+    })
 
     # 3. Create Order
     order_payload = {
@@ -63,11 +79,6 @@ async def test_order_checkout_and_cancellation_cycle(
     refreshed_prod = await db_session.get(Product, prod.id)
     assert refreshed_prod.stock_quantity == 8  # Started at 10, subtracted 2
 
-    # 5. Check Loyalty points awarded
-    refreshed_cust = await db_session.get(Customer, cust.id)
-    # 10% of 11.00 = 1 point rewarded
-    assert refreshed_cust.loyalty_points == 1
-
     # 6. Process Payment
     payment_payload = {
         "payment_method": "cash",
@@ -83,6 +94,11 @@ async def test_order_checkout_and_cancellation_cycle(
     assert pay_data["amount_paid"] == "20.00"
     assert pay_data["change_amount"] == "9.00"  # 20.00 - 11.00 = 9.00
     assert pay_data["payment_status"] == "completed"
+
+    # 5. Check Loyalty points awarded (moved here after payment is processed)
+    refreshed_cust = await db_session.get(Customer, cust.id)
+    # 10% of 11.00 = 1 point rewarded
+    assert refreshed_cust.loyalty_points == 1
 
     # Check order is paid
     order_check = await client.get(f"/api/v1/orders/{order_data['id']}", headers=headers)

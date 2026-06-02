@@ -1,9 +1,10 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_db
 from app.repositories.user import user_repository
-from app.schemas.user import UserCreate, UserResponse, Token
+from app.schemas.user import UserCreate, UserResponse, Token, UserUpdate
 from app.services.auth import auth_service
 from app.utils.deps import get_current_user, RoleChecker
 from app.models.user import User
@@ -79,3 +80,74 @@ async def get_current_user_profile(current_user: User = Depends(get_current_user
     Fetch current logged-in user profile.
     """
     return current_user
+
+
+@router.get("/users", response_model=List[UserResponse])
+async def list_users(
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(RoleChecker(["admin"]))
+):
+    """
+    List all users. Only admins can perform this.
+    """
+    users = await user_repository.get_multi(db, skip=skip, limit=limit)
+    return users
+
+
+@router.put("/users/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: str,
+    user_in: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(RoleChecker(["admin"]))
+):
+    """
+    Update user details. Only admins can perform this.
+    """
+    user = await user_repository.get(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    update_data = user_in.model_dump(exclude_unset=True)
+    if "password" in update_data and update_data["password"]:
+        hashed_password = auth_service.get_password_hash(update_data["password"])
+        update_data["password_hash"] = hashed_password
+        del update_data["password"]
+    elif "password" in update_data:
+        del update_data["password"]
+        
+    updated_user = await user_repository.update(db, db_obj=user, obj_in=update_data)
+    await db.commit()
+    return updated_user
+
+
+@router.delete("/users/{user_id}", response_model=UserResponse)
+async def delete_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(RoleChecker(["admin"]))
+):
+    """
+    Delete a user. Only admins can perform this.
+    """
+    user = await user_repository.get(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    if str(user.id) == str(current_admin.id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Admins cannot delete themselves"
+        )
+        
+    deleted_user = await user_repository.remove(db, id=user_id)
+    await db.commit()
+    return deleted_user
