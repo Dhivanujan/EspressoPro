@@ -1,4 +1,5 @@
 from typing import List, Optional
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.cloudinary_service import cloudinary_service
@@ -20,6 +21,7 @@ from app.repositories.base import BaseRepository
 
 router = APIRouter(tags=["Products & Ingredients"])
 ingredient_repo = BaseRepository(Ingredient)
+ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tiff", ".svg"}
 
 # --- INGREDIENTS ENDPOINTS ---
 @router.post("/ingredients", response_model=IngredientResponse, status_code=status.HTTP_201_CREATED)
@@ -280,16 +282,43 @@ async def upload_product_image(
     """
     Upload a product image using Cloudinary or a resilient local fallback directory (Admin only).
     """
-    if not file.content_type.startswith("image/"):
+    content_type = file.content_type or ""
+    if content_type and not content_type.startswith("image/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File uploaded must be a valid image"
         )
+
+    if not content_type:
+        ext = Path(file.filename or "").suffix.lower()
+        if ext and ext not in ALLOWED_IMAGE_EXTENSIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File uploaded must be a valid image"
+            )
         
     try:
         content = await file.read()
-        url = await cloudinary_service.upload_image(content, folder="products")
+        if not content:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Uploaded file is empty"
+            )
+        if len(content) > 5 * 1024 * 1024:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Image file size must be less than 5MB"
+            )
+
+        url = await cloudinary_service.upload_image(
+            content,
+            folder="products",
+            filename=file.filename,
+            content_type=content_type or None,
+        )
         return {"url": url, "provider": "cloudinary" if cloudinary_service.enabled else "local"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

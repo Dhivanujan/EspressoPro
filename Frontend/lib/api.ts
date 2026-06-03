@@ -4,10 +4,18 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export function getProductImageUrl(url: string | null | undefined): string {
   if (!url) return "";
-  if (url.startsWith("/")) {
-    return `${API_BASE_URL}${url}`;
+  const trimmedUrl = url.trim();
+  if (trimmedUrl.startsWith("/")) {
+    return `${API_BASE_URL}${trimmedUrl}`;
   }
-  return url;
+  // Normalize protocols to HTTPS
+  if (trimmedUrl.startsWith("http://")) {
+    return trimmedUrl.replace("http://", "https://");
+  }
+  if (!trimmedUrl.startsWith("https://")) {
+    return `https://${trimmedUrl}`;
+  }
+  return trimmedUrl;
 }
 
 interface RequestOptions extends RequestInit {

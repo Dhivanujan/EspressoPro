@@ -1,6 +1,9 @@
 import os
 import uuid
 import asyncio
+import mimetypes
+from pathlib import Path
+from typing import Optional
 from datetime import datetime
 from functools import partial
 import cloudinary
@@ -27,11 +30,29 @@ class CloudinaryService:
             self.enabled = False
             print("Cloudinary credentials are not configured. POS will use resilient local upload storage fallback.")
 
-        # Ensure local static uploads folder is created
-        self.local_upload_dir = "app/static/uploads"
+        # Ensure local static uploads folder is created (absolute path for stable behavior)
+        app_root = Path(__file__).resolve().parents[1]
+        self.local_upload_dir = str(app_root / "static" / "uploads")
         os.makedirs(self.local_upload_dir, exist_ok=True)
 
-    async def upload_image(self, file_content: bytes, folder: str = "products") -> str:
+    def _infer_extension(self, filename: Optional[str], content_type: Optional[str]) -> str:
+        if filename:
+            _, ext = os.path.splitext(filename)
+            if ext:
+                return ext.lower()
+        if content_type:
+            ext = mimetypes.guess_extension(content_type)
+            if ext:
+                return ext.lower()
+        return ".png"
+
+    async def upload_image(
+        self,
+        file_content: bytes,
+        folder: str = "products",
+        filename: Optional[str] = None,
+        content_type: Optional[str] = None,
+    ) -> str:
         """
         Uploads image content to Cloudinary or falls back to saving locally on the POS server.
         Returns secure accessible URL.
@@ -56,7 +77,8 @@ class CloudinaryService:
 
         # Resilient Local Saving Fallback Engine
         try:
-            filename = f"{uuid.uuid4().hex}_{int(datetime.utcnow().timestamp())}.png"
+            extension = self._infer_extension(filename, content_type)
+            filename = f"{uuid.uuid4().hex}_{int(datetime.utcnow().timestamp())}{extension}"
             filepath = os.path.join(self.local_upload_dir, filename)
 
             # Write file bytes locally
