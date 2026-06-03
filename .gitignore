@@ -7,3 +7,17 @@
 **/venv/
 **/.venv/
 
+# Python cache & compiled files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Testing & logs
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+
+# Local Scratch directory
+**/scratch/
+
