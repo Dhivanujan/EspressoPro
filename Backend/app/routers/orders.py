@@ -198,44 +198,48 @@ async def cancel_order(
         
     # 1. Restore product & recipe ingredient stocks
     for item in order.items:
-        # Restore product stock
-        product_res = await db.execute(select(Product).filter(Product.id == item.product_id))
-        product = product_res.scalars().first()
-        if product:
-            product.stock_quantity += item.quantity
-            db.add(product)
-            
-            # Log product adjustment
-            prod_log = InventoryLog(
-                item_type="product",
-                item_id=product.id,
-                change_amount=float(item.quantity),
-                reason="adjustment",
-                adjusted_by=current_user.id
-            )
-            db.add(prod_log)
-            
-        # Restore recipe ingredients
+        # Check if product has a recipe
         recipe_res = await db.execute(
             select(ProductIngredient).filter(ProductIngredient.product_id == item.product_id)
         )
-        for recipe in recipe_res.scalars().all():
-            ing_res = await db.execute(select(Ingredient).filter(Ingredient.id == recipe.ingredient_id))
-            ingredient = ing_res.scalars().first()
-            if ingredient:
-                restored_qty = recipe.quantity_required * item.quantity
-                ingredient.stock_quantity += restored_qty
-                db.add(ingredient)
+        recipe_list = recipe_res.scalars().all()
+        
+        if not recipe_list:
+            # Restore product stock
+            product_res = await db.execute(select(Product).filter(Product.id == item.product_id))
+            product = product_res.scalars().first()
+            if product:
+                product.stock_quantity += item.quantity
+                db.add(product)
                 
-                # Log ingredient adjustment
-                ing_log = InventoryLog(
-                    item_type="ingredient",
-                    item_id=ingredient.id,
-                    change_amount=float(restored_qty),
+                # Log product adjustment
+                prod_log = InventoryLog(
+                    item_type="product",
+                    item_id=product.id,
+                    change_amount=float(item.quantity),
                     reason="adjustment",
                     adjusted_by=current_user.id
                 )
-                db.add(ing_log)
+                db.add(prod_log)
+        else:
+            # Restore recipe ingredients
+            for recipe in recipe_list:
+                ing_res = await db.execute(select(Ingredient).filter(Ingredient.id == recipe.ingredient_id))
+                ingredient = ing_res.scalars().first()
+                if ingredient:
+                    restored_qty = recipe.quantity_required * item.quantity
+                    ingredient.stock_quantity += restored_qty
+                    db.add(ingredient)
+                    
+                    # Log ingredient adjustment
+                    ing_log = InventoryLog(
+                        item_type="ingredient",
+                        item_id=ingredient.id,
+                        change_amount=float(restored_qty),
+                        reason="adjustment",
+                        adjusted_by=current_user.id
+                    )
+                    db.add(ing_log)
 
     # 2. Revert Loyalty Points
     if order.customer_id:

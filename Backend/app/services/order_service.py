@@ -34,26 +34,31 @@ class OrderService:
             if not product.availability_status:
                 raise ValueError(f"Product '{product.name}' is currently unavailable")
             
-            # Check direct product stock
-            if product.stock_quantity < item_in.quantity:
-                raise ValueError(f"Insufficient stock for product '{product.name}'. Available: {product.stock_quantity}")
-            
-            # Check ingredients recipe stock
+            # Fetch product ingredients/recipes
             pi_docs = await db["product_ingredients"].find({"product_id": str(product.id)}).to_list(length=100)
             recipe_items = [ProductIngredient(**pi) for pi in pi_docs]
             
-            for recipe in recipe_items:
-                ing_id = recipe.ingredient_id
-                ing_query = ObjectId(ing_id) if isinstance(ing_id, str) and ObjectId.is_valid(ing_id) else ing_id
-                ing_doc = await db["ingredients"].find_one({"_id": ing_query})
-                if not ing_doc:
-                    continue
-                ingredient = Ingredient(**ing_doc)
-                required_total = recipe.quantity_required * item_in.quantity
-                if ingredient.stock_quantity < required_total:
+            if recipe_items:
+                # Check ingredients recipe stock
+                for recipe in recipe_items:
+                    ing_id = recipe.ingredient_id
+                    ing_query = ObjectId(ing_id) if isinstance(ing_id, str) and ObjectId.is_valid(ing_id) else ing_id
+                    ing_doc = await db["ingredients"].find_one({"_id": ing_query})
+                    if not ing_doc:
+                        continue
+                    ingredient = Ingredient(**ing_doc)
+                    required_total = recipe.quantity_required * item_in.quantity
+                    if ingredient.stock_quantity < required_total:
+                        raise ValueError(
+                            f"Insufficient inventory: ingredient '{ingredient.name}' is out of stock. "
+                            f"Available: {ingredient.stock_quantity} {ingredient.unit}, Required: {required_total} {ingredient.unit}"
+                        )
+            else:
+                # Check direct product stock only if product has no recipe
+                if product.stock_quantity < item_in.quantity:
                     raise ValueError(
-                        f"Insufficient ingredient stock for '{ingredient.name}' required for '{product.name}'. "
-                        f"Available: {ingredient.stock_quantity} {ingredient.unit}, Required: {required_total} {ingredient.unit}"
+                        f"Insufficient inventory: product '{product.name}' is out of stock. "
+                        f"Available: {product.stock_quantity}"
                     )
             
             item_subtotal = Decimal(str(product.price)) * item_in.quantity
@@ -131,7 +136,7 @@ class OrderService:
             db.add(db_item)
             
             # Decrement product stock
-            product.stock_quantity -= quantity
+            product.stock_quantity = max(0, product.stock_quantity - quantity)
             db.add(product)
             
             # Log product stock movement

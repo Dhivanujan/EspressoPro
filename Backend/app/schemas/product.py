@@ -54,6 +54,7 @@ class ProductBase(BaseModel):
 
 class ProductCreate(ProductBase):
     recipe: Optional[List[ProductIngredientCreate]] = []
+    recipes: Optional[List[ProductIngredientCreate]] = []
 
 class ProductUpdate(BaseModel):
     category_id: Optional[str] = None
@@ -65,6 +66,7 @@ class ProductUpdate(BaseModel):
     image_url: Optional[str] = None
     availability_status: Optional[bool] = None
     recipe: Optional[List[ProductIngredientCreate]] = None
+    recipes: Optional[List[ProductIngredientCreate]] = None
 
 class ProductResponse(ProductBase):
     id: str

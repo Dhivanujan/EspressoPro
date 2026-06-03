@@ -134,8 +134,8 @@ async def create_product(
         )
     
     # Extract recipe data
-    recipe_data = product_in.recipe
-    product_data = product_in.model_dump(exclude={"recipe"})
+    recipe_data = product_in.recipe or product_in.recipes
+    product_data = product_in.model_dump(exclude={"recipe", "recipes"})
     
     new_product = await product_repository.create(db, obj_in=product_data)
     await db.flush()  # gets new_product.id
@@ -223,8 +223,8 @@ async def update_product(
             )
             
     # Extract recipe if provided
-    recipe_data = product_in.recipe
-    product_data = product_in.model_dump(exclude={"recipe"}, exclude_unset=True)
+    recipe_data = product_in.recipe if product_in.recipe is not None else product_in.recipes
+    product_data = product_in.model_dump(exclude={"recipe", "recipes"}, exclude_unset=True)
     
     # Update product main attributes
     await product_repository.update(db, db_obj=prod, obj_in=product_data)
