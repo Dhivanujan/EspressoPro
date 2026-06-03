@@ -419,7 +419,7 @@ export default function MenuManagementPage() {
                             src={getProductImageUrl(product.image_url)}
                             alt={product.name}
                             fill
-                            className="object-cover transition duration-300 group-hover:scale-105"
+                            className="object-contain transition duration-300 group-hover:scale-105"
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-800">
@@ -717,7 +717,7 @@ export default function MenuManagementPage() {
                           <img
                             src={getProductImageUrl(formImageUrl)}
                             alt="Product preview"
-                            className="object-cover w-full h-full"
+                            className="object-contain w-full h-full"
                           />
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition duration-200 flex flex-col items-center justify-center gap-2">
                             <span className="text-white text-xs font-bold px-3 py-1 rounded-md bg-white/10 backdrop-blur-xs border border-white/20">

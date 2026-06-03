@@ -459,7 +459,7 @@ export default function DashboardPage() {
                       src={getProductImageUrl(item.product.image_url)}
                       alt={item.product.name}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-700">
@@ -891,7 +891,7 @@ export default function DashboardPage() {
                         src={getProductImageUrl(product.image_url)}
                         alt={product.name}
                         fill
-                        className="object-cover transition duration-500 group-hover:scale-105"
+                        className="object-contain transition duration-500 group-hover:scale-105"
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-800">
