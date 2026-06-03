@@ -91,19 +91,18 @@ export default function Sidebar() {
         <X size={18} className={isDark ? "text-gray-400" : "text-gray-500"} />
       </button>
 
-      {/* Brand Header */}
       <div className="mb-8">
         <Link href={homeHref} className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 border ${
-            isDark ? "bg-[#82542a] border-white/10 text-[#febf8c]" : "bg-[#2d241e] border-transparent text-white"
+            isDark ? "bg-coffee-500 border-white/10 text-coffee-200" : "bg-coffee-700 border-transparent text-white"
           }`}>
             <Coffee size={22} />
           </div>
           <div>
-            <h1 className={`text-xl font-bold leading-none ${isDark ? "text-[#f0dfd6]" : "text-[#170f0a]"}`}>
+            <h1 className={`text-xl font-bold leading-none ${isDark ? "text-coffee-100" : "text-coffee-950"}`}>
               EspressoPro
             </h1>
-            <p className={`text-[10px] mt-1 tracking-wider uppercase font-semibold ${isDark ? "text-[#988a82]" : "text-gray-400"}`}>
+            <p className={`text-[10px] mt-1 tracking-wider uppercase font-semibold ${isDark ? "text-coffee-800" : "text-gray-400"}`}>
               Smart Coffee POS
             </p>
           </div>
@@ -122,14 +121,14 @@ export default function Sidebar() {
               className={`flex w-full items-center gap-3.5 rounded-xl px-4 py-3.5 transition-all duration-200 ${
                 isActive
                   ? isDark
-                    ? "bg-[#82542a]/30 text-[#febf8c] font-semibold border border-[#82542a]/20 shadow-sm"
-                    : "bg-[#febf8c]/25 text-[#82542a] font-semibold shadow-sm shadow-[#febf8c]/10"
+                    ? "bg-coffee-500/30 text-coffee-200 font-semibold border border-coffee-500/20 shadow-sm"
+                    : "bg-coffee-200/25 text-coffee-500 font-semibold shadow-sm shadow-coffee-200/10"
                   : isDark
                   ? "text-gray-400 hover:text-white hover:bg-white/5"
-                  : "text-gray-500 hover:text-[#170f0a] hover:bg-gray-50"
+                  : "text-gray-500 hover:text-coffee-950 hover:bg-gray-50"
               }`}
             >
-              <div className={isActive ? (isDark ? "text-[#febf8c]" : "text-[#82542a]") : (isDark ? "text-gray-500" : "text-gray-400")}>
+              <div className={isActive ? (isDark ? "text-coffee-200" : "text-coffee-500") : (isDark ? "text-gray-500" : "text-gray-400")}>
                 {item.icon}
               </div>
               <span className="text-sm font-medium">{item.label}</span>
@@ -143,15 +142,15 @@ export default function Sidebar() {
         {user && (
           <div className="flex items-center gap-3 px-2">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-              isDark ? "bg-[#febf8c]/15 text-[#febf8c]" : "bg-[#febf8c]/35 text-[#82542a]"
+              isDark ? "bg-coffee-200/15 text-coffee-200" : "bg-coffee-200/35 text-coffee-500"
             }`}>
               <UserIcon size={18} />
             </div>
             <div className="overflow-hidden">
-              <p className={`font-semibold text-sm truncate leading-none mb-1 ${isDark ? "text-[#f0dfd6]" : "text-[#170f0a]"}`}>
+              <p className={`font-semibold text-sm truncate leading-none mb-1 ${isDark ? "text-coffee-100" : "text-coffee-950"}`}>
                 {user.full_name}
               </p>
-              <p className={`text-xs capitalize ${isDark ? "text-[#988a82]" : "text-gray-400"}`}>
+              <p className={`text-xs capitalize ${isDark ? "text-coffee-800" : "text-gray-400"}`}>
                 {user.role} Account
               </p>
             </div>
@@ -162,7 +161,7 @@ export default function Sidebar() {
           <button
             onClick={() => alert("Help Center is currently under maintenance. Please contact support.")}
             className={`flex w-full items-center gap-3.5 rounded-xl px-4 py-3 text-sm transition ${
-              isDark ? "text-gray-400 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-[#170f0a] hover:bg-gray-50"
+              isDark ? "text-gray-400 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-coffee-950 hover:bg-gray-50"
             }`}
           >
             <HelpCircle size={18} />
@@ -189,7 +188,7 @@ export default function Sidebar() {
       <button
         onClick={() => setMobileOpen(true)}
         className={`lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm border ${
-          isDark ? "bg-[#2d241e] border-white/10 text-[#f0dfd6]" : "bg-white border-gray-200 text-gray-700"
+          isDark ? "bg-coffee-700 border-white/10 text-coffee-100" : "bg-white border-gray-200 text-gray-700"
         }`}
       >
         <Menu size={20} />
@@ -210,7 +209,7 @@ export default function Sidebar() {
             ? "fixed inset-y-0 left-0 z-50 flex"
             : "hidden lg:flex"
         } w-72 flex-col border-r p-5 h-screen sticky top-0 transition-colors duration-200 ${
-          isDark ? "bg-[#170f0a] border-white/10" : "bg-white border-gray-200"
+          isDark ? "bg-coffee-950 border-white/10" : "bg-white border-gray-200"
         }`}
       >
         {sidebarContent}

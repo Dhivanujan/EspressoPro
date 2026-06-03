@@ -105,21 +105,21 @@ export default function KitchenDisplayPage() {
   const pendingCount = orders.filter((o) => o.order_status === "pending").length;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#170f0a] text-[#f0dfd6]">
+    <div className="flex h-screen overflow-hidden bg-coffee-950 text-coffee-100">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main KDS Area */}
       <main className="flex flex-1 flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="flex h-20 items-center justify-between border-b border-white/10 bg-[#2d241e]/90 px-8 backdrop-blur shrink-0">
+        <header className="flex h-20 items-center justify-between border-b border-white/10 bg-coffee-700/90 px-8 backdrop-blur shrink-0">
           <div className="flex items-center gap-6">
-            <div className="w-10 h-10 rounded-xl bg-[#82542a] flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-xl bg-coffee-500 flex items-center justify-center text-white">
               <Tv size={20} />
             </div>
             <div>
               <h2 className="text-xl font-black tracking-wider">KITCHEN MONITOR (KDS)</h2>
-              <p className="text-[10px] text-[#988a82] uppercase tracking-widest mt-0.5">
+              <p className="text-[10px] text-coffee-800 uppercase tracking-widest mt-0.5">
                 Active Order Expediter
               </p>
             </div>
@@ -144,15 +144,15 @@ export default function KitchenDisplayPage() {
         <section className="flex-1 overflow-y-auto p-8">
           {loading ? (
             <div className="h-full flex flex-col items-center justify-center gap-4 text-center py-20">
-              <Loader2 className="animate-spin text-[#febf8c]" size={36} />
+              <Loader2 className="animate-spin text-coffee-200" size={36} />
               <p className="text-gray-400 font-semibold">Aligning with terminal tickets...</p>
             </div>
           ) : orders.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center py-24 bg-white/5 border border-dashed border-white/10 rounded-3xl p-8 gap-4">
-              <Tv size={48} className="text-[#988a82]" />
+              <Tv size={48} className="text-coffee-800" />
               <div>
                 <p className="font-extrabold text-lg text-white">No active orders!</p>
-                <p className="text-sm text-[#988a82] mt-1">Excellent job! All barista tickets are completed.</p>
+                <p className="text-sm text-coffee-800 mt-1">Excellent job! All barista tickets are completed.</p>
               </div>
             </div>
           ) : (
@@ -165,7 +165,7 @@ export default function KitchenDisplayPage() {
                     key={order.id}
                     className={`flex min-h-[420px] flex-col overflow-hidden rounded-2xl border backdrop-blur-xs transition ${
                       prep
-                        ? "border-[#82542a] bg-white/10 shadow-lg"
+                        ? "border-coffee-500 bg-white/10 shadow-lg"
                         : late
                         ? "border-red-500/30 bg-red-500/5 animate-pulse"
                         : "border-white/10 bg-white/5"
@@ -177,7 +177,7 @@ export default function KitchenDisplayPage() {
                         late
                           ? "border-red-500/20 bg-red-500/20"
                           : prep
-                          ? "border-[#82542a]/30 bg-[#82542a]/20"
+                          ? "border-coffee-500/30 bg-coffee-500/20"
                           : "border-white/10 bg-white/5"
                       }`}
                     >
@@ -187,7 +187,7 @@ export default function KitchenDisplayPage() {
                             late
                               ? "bg-red-500 text-white"
                               : prep
-                              ? "bg-[#febf8c] text-[#2e1500]"
+                              ? "bg-coffee-200 text-[#2e1500]"
                               : "bg-white text-black"
                           }`}
                         >
@@ -202,7 +202,7 @@ export default function KitchenDisplayPage() {
                         <p className={`text-xl font-black ${late ? "text-red-400" : "text-white"}`}>
                           {getElapsedTime(order.created_at)}
                         </p>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#988a82]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-coffee-800">
                           {late ? "Overdue" : "Active"}
                         </span>
                       </div>
@@ -228,7 +228,7 @@ export default function KitchenDisplayPage() {
                         className={`w-full rounded-xl py-3 text-base font-bold transition active:scale-98 shadow-sm ${
                           order.order_status === "pending"
                             ? "bg-white text-black hover:opacity-90"
-                            : "bg-[#82542a] text-white hover:bg-[#82542a]/95"
+                            : "bg-coffee-500 text-white hover:bg-coffee-500/95"
                         }`}
                       >
                         {order.order_status === "pending" ? "START TICKET" : "COMPLETE TICKET"}
@@ -242,7 +242,7 @@ export default function KitchenDisplayPage() {
         </section>
 
         {/* Footer Stats Bar */}
-        <footer className="flex h-16 items-center justify-between border-t border-white/10 bg-[#2d241e] px-8 shrink-0 text-xs">
+        <footer className="flex h-16 items-center justify-between border-t border-white/10 bg-coffee-700 px-8 shrink-0 text-xs">
           <div className="flex gap-8">
             <div className="flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${overdueCount > 0 ? "bg-red-500 animate-ping" : "bg-red-500"}`} />
@@ -250,7 +250,7 @@ export default function KitchenDisplayPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#febf8c]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-coffee-200" />
               <span className="font-semibold">{preparingCount} IN PROGRESS</span>
             </div>
 
@@ -261,7 +261,7 @@ export default function KitchenDisplayPage() {
           </div>
 
           <div>
-            <span className="text-[#988a82] font-semibold">EspressoPro Live Monitor v1.0</span>
+            <span className="text-coffee-800 font-semibold">EspressoPro Live Monitor v1.0</span>
           </div>
         </footer>
       </main>

@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen bg-[#f8f9ff]">
+      <body className="antialiased min-h-screen bg-coffee-50">
         <AuthProvider>
           <Toaster
             position="top-right"

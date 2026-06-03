@@ -163,7 +163,7 @@ export default function InventoryManagementPage() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f9ff]">
+    <div className="flex h-screen overflow-hidden bg-coffee-50">
       {/* Sidebar */}
       <Sidebar />
 
@@ -172,7 +172,7 @@ export default function InventoryManagementPage() {
         {/* Header */}
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/80 backdrop-blur-lg px-8 py-5">
           <div>
-            <h1 className="text-xl font-bold text-[#170f0a]">Supply & Stock Room</h1>
+            <h1 className="text-xl font-bold text-coffee-950">Supply & Stock Room</h1>
             <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
               Inventory & Audits
             </p>
@@ -189,7 +189,7 @@ export default function InventoryManagementPage() {
               </button>
               <button
                 onClick={() => handleOpenAdjust("ingredient", ingredients[0]?.id || "")}
-                className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-4 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+                className="flex items-center gap-2 rounded-xl bg-coffee-950 px-4 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
               >
                 <ArrowUpDown size={16} />
                 Quick Adjustment
@@ -255,14 +255,14 @@ export default function InventoryManagementPage() {
                     placeholder="Search material..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-4 outline-none focus:border-[#82542a]"
+                    className="w-full text-xs rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-4 outline-none focus:border-coffee-500"
                   />
                 </div>
               </div>
 
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white border rounded-2xl">
-                  <Loader2 className="animate-spin text-[#82542a]" size={36} />
+                  <Loader2 className="animate-spin text-coffee-500" size={36} />
                   <p className="text-gray-500 text-sm font-medium">Scanning stock room...</p>
                 </div>
               ) : filteredIngredients.length === 0 ? (
@@ -307,7 +307,7 @@ export default function InventoryManagementPage() {
                                 {isAdmin && (
                                   <button
                                     onClick={() => handleOpenAdjust("ingredient", item.id)}
-                                    className="text-xs font-bold text-[#82542a] hover:underline"
+                                    className="text-xs font-bold text-coffee-500 hover:underline"
                                   >
                                     Adjust
                                   </button>
@@ -333,7 +333,7 @@ export default function InventoryManagementPage() {
               <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs h-[450px] overflow-y-auto space-y-4">
                 {loading ? (
                   <div className="h-full flex items-center justify-center">
-                    <Loader2 className="animate-spin text-[#82542a]" size={24} />
+                    <Loader2 className="animate-spin text-coffee-500" size={24} />
                   </div>
                 ) : logs.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-20">No stock logs generated yet.</p>
@@ -383,7 +383,7 @@ export default function InventoryManagementPage() {
                     setAdjustItemType(e.target.value);
                     setAdjustItemId(e.target.value === "ingredient" ? ingredients[0]?.id || "" : products[0]?.id || "");
                   }}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a]"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-coffee-500"
                 >
                   <option value="ingredient">Raw Ingredient</option>
                   <option value="product">Finished Product</option>
@@ -395,7 +395,7 @@ export default function InventoryManagementPage() {
                 <select
                   value={adjustItemId}
                   onChange={(e) => setAdjustItemId(e.target.value)}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a]"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-coffee-500"
                 >
                   {adjustItemType === "ingredient"
                     ? ingredients.map((ing) => (
@@ -420,7 +420,7 @@ export default function InventoryManagementPage() {
                   placeholder="e.g. 500 (use negative to reduce)"
                   value={adjustChange}
                   onChange={(e) => setAdjustChange(e.target.value)}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a]"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-coffee-500"
                 />
               </div>
 
@@ -429,7 +429,7 @@ export default function InventoryManagementPage() {
                 <select
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a]"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-coffee-500"
                 >
                   <option value="restock">Restock / Replenish</option>
                   <option value="wastage">Spillage / Waste</option>
@@ -448,7 +448,7 @@ export default function InventoryManagementPage() {
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#170f0a] px-5 py-2 text-xs font-bold text-white hover:opacity-90"
+                  className="flex items-center gap-1.5 rounded-xl bg-coffee-950 px-5 py-2 text-xs font-bold text-white hover:opacity-90"
                 >
                   {modalLoading && <Loader2 className="animate-spin" size={12} />}
                   Save Adjust
@@ -479,7 +479,7 @@ export default function InventoryManagementPage() {
                   placeholder="e.g. Vanilla Beans"
                   value={addName}
                   onChange={(e) => setAddName(e.target.value)}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a]"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-coffee-500"
                 />
               </div>
 
@@ -492,7 +492,7 @@ export default function InventoryManagementPage() {
                     placeholder="1000"
                     value={addStock}
                     onChange={(e) => setAddStock(e.target.value)}
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-coffee-500"
                   />
                 </div>
 
@@ -534,7 +534,7 @@ export default function InventoryManagementPage() {
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#170f0a] px-5 py-2 text-xs font-bold text-white hover:opacity-90"
+                  className="flex items-center gap-1.5 rounded-xl bg-coffee-950 px-5 py-2 text-xs font-bold text-white hover:opacity-90"
                 >
                   {modalLoading && <Loader2 className="animate-spin" size={12} />}
                   Register Item

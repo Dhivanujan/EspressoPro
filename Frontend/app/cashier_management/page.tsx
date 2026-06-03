@@ -185,7 +185,7 @@ export default function CashierManagementPage() {
   });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f9ff]">
+    <div className="flex h-screen overflow-hidden bg-coffee-50">
       {/* Sidebar */}
       <Sidebar />
 
@@ -195,7 +195,7 @@ export default function CashierManagementPage() {
         <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/80 backdrop-blur-lg px-8 shrink-0">
           <div className="flex items-center justify-between py-5">
             <div>
-              <h1 className="text-xl font-bold text-[#170f0a]">Staff Registry</h1>
+              <h1 className="text-xl font-bold text-coffee-950">Staff Registry</h1>
               <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
                 Manage POS Cashiers & System Administrators
               </p>
@@ -203,7 +203,7 @@ export default function CashierManagementPage() {
 
             <button
               onClick={handleOpenAdd}
-              className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+              className="flex items-center gap-2 rounded-xl bg-coffee-950 px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
             >
               <Plus size={18} />
               Add Cashier/Staff
@@ -224,19 +224,19 @@ export default function CashierManagementPage() {
                 placeholder="Search staff registry by name or role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10"
               />
             </div>
 
             <div className="flex items-center gap-2 text-xs font-bold text-gray-500 bg-white border px-4 py-2 rounded-xl">
-              <Users size={14} className="text-[#82542a]" />
+              <Users size={14} className="text-coffee-500" />
               <span>Total registered staff: {users.length}</span>
             </div>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 className="animate-spin text-[#82542a]" size={36} />
+              <Loader2 className="animate-spin text-coffee-500" size={36} />
               <p className="text-gray-500 font-medium">Fetching active store staff...</p>
             </div>
           ) : filteredUsers.length === 0 ? (
@@ -266,7 +266,7 @@ export default function CashierManagementPage() {
                             <div className="flex items-center gap-3">
                               <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold ${
                                 item.role === "admin" 
-                                  ? "bg-[#febf8c]/25 text-[#82542a]" 
+                                  ? "bg-coffee-200/25 text-coffee-500" 
                                   : "bg-blue-50 text-blue-700"
                               }`}>
                                 {item.full_name.charAt(0).toUpperCase()}
@@ -381,7 +381,7 @@ export default function CashierManagementPage() {
                   value={formFullName}
                   onChange={(e) => setFormFullName(e.target.value)}
                   placeholder="e.g. Liam Martinez"
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                 />
               </div>
 
@@ -396,7 +396,7 @@ export default function CashierManagementPage() {
                   value={formUsername}
                   onChange={(e) => setFormUsername(e.target.value)}
                   placeholder="e.g. liam_pos"
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a] disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
                 {editingUser && (
                   <p className="text-[10px] text-gray-400 mt-1 font-medium pl-1">
@@ -414,7 +414,7 @@ export default function CashierManagementPage() {
                     value={formRole}
                     onChange={(e) => setFormRole(e.target.value)}
                     disabled={editingUser?.id === currentUser?.id}
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a] disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
                   >
                     <option value="cashier">Cashier</option>
                     <option value="admin">Administrator</option>
@@ -428,7 +428,7 @@ export default function CashierManagementPage() {
                       checked={formIsActive}
                       disabled={editingUser?.id === currentUser?.id}
                       onChange={(e) => setFormIsActive(e.target.checked)}
-                      className="rounded border-gray-300 text-[#82542a] focus:ring-[#82542a] disabled:cursor-not-allowed"
+                      className="rounded border-gray-300 text-coffee-500 focus:ring-coffee-500 disabled:cursor-not-allowed"
                     />
                     <span className="text-xs font-bold text-gray-600 uppercase tracking-wider select-none">
                       Active Access
@@ -454,7 +454,7 @@ export default function CashierManagementPage() {
                   value={formPassword}
                   onChange={(e) => setFormPassword(e.target.value)}
                   placeholder={editingUser ? "••••••••" : "Min 6 characters"}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                 />
               </div>
 
@@ -476,7 +476,7 @@ export default function CashierManagementPage() {
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#170f0a] text-sm font-bold text-white hover:opacity-90 active:scale-[0.98] transition shadow-xs disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-coffee-950 text-sm font-bold text-white hover:opacity-90 active:scale-[0.98] transition shadow-xs disabled:opacity-50"
                 >
                   {modalLoading && <Loader2 className="animate-spin" size={14} />}
                   {editingUser ? "Save Details" : "Register Account"}

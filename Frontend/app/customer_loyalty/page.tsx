@@ -211,7 +211,7 @@ export default function CustomerManagementPage() {
       <div className="space-y-2 mt-4 font-sans bg-gray-50/50 p-4 rounded-xl border border-gray-100 shadow-inner">
         <div className="flex justify-between text-xs font-bold text-gray-500">
           <span>{currentTier}</span>
-          <span className="text-[#82542a]">{pts} / {nextMax} pts</span>
+          <span className="text-coffee-500">{pts} / {nextMax} pts</span>
           <span>{nextTier}</span>
         </div>
         <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -268,7 +268,7 @@ export default function CustomerManagementPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f9ff]">
+    <div className="flex h-screen overflow-hidden bg-coffee-50">
       {/* Sidebar */}
       <Sidebar />
 
@@ -277,7 +277,7 @@ export default function CustomerManagementPage() {
         {/* Header */}
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/80 backdrop-blur-lg px-8 py-5 shrink-0">
           <div>
-            <h1 className="text-xl font-bold text-[#170f0a]">Loyalty Registry</h1>
+            <h1 className="text-xl font-bold text-coffee-950">Loyalty Registry</h1>
             <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
               Customer Relationship CRM
             </p>
@@ -285,7 +285,7 @@ export default function CustomerManagementPage() {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+            className="flex items-center gap-2 rounded-xl bg-coffee-950 px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
           >
             <Plus size={18} />
             Register Customer
@@ -328,14 +328,14 @@ export default function CustomerManagementPage() {
                     placeholder="Search by name or phone..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-4 outline-none focus:border-[#82542a]"
+                    className="w-full text-xs rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-4 outline-none focus:border-coffee-500"
                   />
                 </div>
               </div>
 
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                  <Loader2 className="animate-spin text-[#82542a]" size={36} />
+                  <Loader2 className="animate-spin text-coffee-500" size={36} />
                   <p className="text-gray-500 text-sm font-medium">Scanning loyalty ledger...</p>
                 </div>
               ) : filteredCustomers.length === 0 ? (
@@ -360,12 +360,12 @@ export default function CustomerManagementPage() {
                         key={customer.id}
                         onClick={() => setSelectedCustomer(customer)}
                         className={`border-t hover:bg-gray-50/50 cursor-pointer transition ${
-                          selectedCustomer?.id === customer.id ? "bg-[#febf8c]/10" : ""
+                          selectedCustomer?.id === customer.id ? "bg-coffee-200/10" : ""
                         }`}
                       >
                         <td className="px-6 py-4.5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#febf8c]/30 flex items-center justify-center text-[#82542a] font-bold text-sm uppercase">
+                            <div className="w-9 h-9 rounded-full bg-coffee-200/30 flex items-center justify-center text-coffee-500 font-bold text-sm uppercase">
                               {customer.name.charAt(0)}
                             </div>
                             <div>
@@ -403,12 +403,12 @@ export default function CustomerManagementPage() {
                 
                 {/* Profile VIP card */}
                 <div className="bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-md">
-                  <div className="h-28 bg-[#170f0a] relative overflow-hidden flex items-center p-6 justify-between">
+                  <div className="h-28 bg-coffee-950 relative overflow-hidden flex items-center p-6 justify-between">
                     {/* Glowing design asset */}
-                    <div className="absolute -top-12 -right-12 w-28 h-28 bg-[#82542a]/30 rounded-full blur-2xl" />
+                    <div className="absolute -top-12 -right-12 w-28 h-28 bg-coffee-500/30 rounded-full blur-2xl" />
                     
                     <div className="flex items-center gap-3.5 z-10">
-                      <div className="w-14 h-14 rounded-2xl border-2 border-amber-500 bg-[#febf8c] flex items-center justify-center text-[#82542a] font-black text-2xl uppercase shadow-md">
+                      <div className="w-14 h-14 rounded-2xl border-2 border-amber-500 bg-coffee-200 flex items-center justify-center text-coffee-500 font-black text-2xl uppercase shadow-md">
                         {selectedCustomer.name.charAt(0)}
                       </div>
                       <div>
@@ -429,7 +429,7 @@ export default function CustomerManagementPage() {
                     {/* Points Total */}
                     <div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Loyalty Account</span>
-                      <h4 className="text-4xl font-black text-[#170f0a] tracking-tight flex items-baseline gap-2">
+                      <h4 className="text-4xl font-black text-coffee-950 tracking-tight flex items-baseline gap-2">
                         {selectedCustomer.loyalty_points || 0}
                         <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Spendable Points</span>
                       </h4>
@@ -468,7 +468,7 @@ export default function CustomerManagementPage() {
                 {(() => {
                   const offer = getPromoOffer(selectedCustomer.tier || "Bronze");
                   return (
-                    <div className="bg-gradient-to-br from-[#82542a] to-[#2d241e] rounded-3xl p-6 text-white relative overflow-hidden shadow-lg border border-amber-500/20">
+                    <div className="bg-gradient-to-br from-coffee-500 to-coffee-700 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg border border-amber-500/20">
                       <div className="absolute -top-10 -left-10 w-24 h-24 bg-white/5 rounded-full" />
                       <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-white/5 rounded-full" />
                       
@@ -575,7 +575,7 @@ export default function CustomerManagementPage() {
                   placeholder="e.g. Alice Smith"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-[#82542a]"
+                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-coffee-500"
                 />
               </div>
 
@@ -587,7 +587,7 @@ export default function CustomerManagementPage() {
                   placeholder="e.g. +15550199"
                   value={newPhone}
                   onChange={(e) => setNewPhone(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-[#82542a]"
+                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-coffee-500"
                 />
               </div>
 
@@ -597,7 +597,7 @@ export default function CustomerManagementPage() {
                   type="date"
                   value={newBirthdate}
                   onChange={(e) => setNewBirthdate(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-[#82542a]"
+                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-coffee-500"
                 />
                 <span className="text-[8px] text-amber-600 mt-1 block">Needed for Birthday Double Points overrides</span>
               </div>
@@ -613,7 +613,7 @@ export default function CustomerManagementPage() {
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#170f0a] px-5 py-2 text-xs font-bold text-white hover:opacity-90"
+                  className="flex items-center gap-1.5 rounded-xl bg-coffee-950 px-5 py-2 text-xs font-bold text-white hover:opacity-90"
                 >
                   {modalLoading && <Loader2 className="animate-spin" size={12} />}
                   Add Customer
@@ -650,7 +650,7 @@ export default function CustomerManagementPage() {
                   placeholder="e.g. 50 or -30"
                   value={adjustPoints}
                   onChange={(e) => setAdjustPoints(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-[#82542a] font-bold"
+                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-coffee-500 font-bold"
                 />
                 <span className="text-[8px] text-gray-400 mt-1 block">Input positive number to add, or negative to deduct</span>
               </div>
@@ -663,7 +663,7 @@ export default function CustomerManagementPage() {
                   placeholder="Reason for override adjustment..."
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-[#82542a] leading-relaxed"
+                  className="w-full text-xs rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 outline-none focus:border-coffee-500 leading-relaxed"
                 />
               </div>
 
@@ -737,7 +737,7 @@ function StatCard({
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5 flex gap-4 shadow-xs items-center">
-      <div className="w-12 h-12 rounded-full bg-[#ffdcc2] flex items-center justify-center text-[#82542a] shrink-0">
+      <div className="w-12 h-12 rounded-full bg-coffee-300 flex items-center justify-center text-coffee-500 shrink-0">
         {icon}
       </div>
 
@@ -745,7 +745,7 @@ function StatCard({
         <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">
           {title}
         </p>
-        <h3 className="text-xl font-bold text-[#170f0a] mt-0.5">
+        <h3 className="text-xl font-bold text-coffee-950 mt-0.5">
           {value}
         </h3>
         <p className="text-[10px] text-gray-400 mt-0.5">{subtitle}</p>

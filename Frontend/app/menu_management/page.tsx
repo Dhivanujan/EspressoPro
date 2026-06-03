@@ -284,7 +284,7 @@ export default function MenuManagementPage() {
   });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f9ff]">
+    <div className="flex h-screen overflow-hidden bg-coffee-50">
       {/* Sidebar */}
       <Sidebar />
 
@@ -294,7 +294,7 @@ export default function MenuManagementPage() {
         <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/80 backdrop-blur-lg px-8 shrink-0">
           <div className="flex items-center justify-between py-5">
             <div>
-              <h1 className="text-xl font-bold text-[#170f0a]">Catalog & Promotions</h1>
+              <h1 className="text-xl font-bold text-coffee-950">Catalog & Promotions</h1>
               <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
                 Barista & Store Configuration
               </p>
@@ -303,7 +303,7 @@ export default function MenuManagementPage() {
             {activeTab === "products" ? (
               <button
                 onClick={handleOpenAdd}
-                className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+                className="flex items-center gap-2 rounded-xl bg-coffee-950 px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
               >
                 <Plus size={18} />
                 Add Menu Item
@@ -317,7 +317,7 @@ export default function MenuManagementPage() {
                   setCouponFormActive(true);
                   setShowCouponModal(true);
                 }}
-                className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
+                className="flex items-center gap-2 rounded-xl bg-coffee-950 px-5 py-2.5 font-bold text-white transition hover:opacity-90 active:scale-[0.98] text-sm shadow-sm"
               >
                 <Plus size={18} />
                 Create Coupon
@@ -331,7 +331,7 @@ export default function MenuManagementPage() {
               onClick={() => setActiveTab("products")}
               className={`pb-3 border-b-2 transition-all ${
                 activeTab === "products"
-                  ? "border-[#82542a] text-[#82542a]"
+                  ? "border-coffee-500 text-coffee-500"
                   : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
@@ -341,7 +341,7 @@ export default function MenuManagementPage() {
               onClick={() => setActiveTab("coupons")}
               className={`pb-3 border-b-2 transition-all ${
                 activeTab === "coupons"
-                  ? "border-[#82542a] text-[#82542a]"
+                  ? "border-coffee-500 text-coffee-500"
                   : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
@@ -365,7 +365,7 @@ export default function MenuManagementPage() {
                     placeholder="Search menu catalog..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                    className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10"
                   />
                 </div>
 
@@ -375,7 +375,7 @@ export default function MenuManagementPage() {
                     onClick={() => setSelectedCategory("all")}
                     className={`rounded-xl px-4 py-2 text-xs font-bold border transition ${
                       selectedCategory === "all"
-                        ? "bg-[#2d241e] border-[#2d241e] text-white"
+                        ? "bg-coffee-700 border-coffee-700 text-white"
                         : "bg-white text-gray-500 hover:bg-gray-50"
                     }`}
                   >
@@ -387,7 +387,7 @@ export default function MenuManagementPage() {
                       onClick={() => setSelectedCategory(cat.id)}
                       className={`rounded-xl px-4 py-2 text-xs font-bold border transition ${
                         selectedCategory === cat.id
-                          ? "bg-[#2d241e] border-[#2d241e] text-white"
+                          ? "bg-coffee-700 border-coffee-700 text-white"
                           : "bg-white text-gray-500 hover:bg-gray-50"
                       }`}
                     >
@@ -399,7 +399,7 @@ export default function MenuManagementPage() {
 
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                  <Loader2 className="animate-spin text-[#82542a]" size={36} />
+                  <Loader2 className="animate-spin text-coffee-500" size={36} />
                   <p className="text-gray-500 font-medium">Fetching café catalog...</p>
                 </div>
               ) : filteredProducts.length === 0 ? (
@@ -435,7 +435,7 @@ export default function MenuManagementPage() {
                           </div>
                         )}
 
-                        <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-[#82542a] shadow-sm">
+                        <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-coffee-500 shadow-sm">
                           ${product.price.toFixed(2)}
                         </div>
                       </div>
@@ -505,7 +505,7 @@ export default function MenuManagementPage() {
             <>
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4">
-                  <Loader2 className="animate-spin text-[#82542a]" size={36} />
+                  <Loader2 className="animate-spin text-coffee-500" size={36} />
                   <p className="text-gray-500 font-medium">Loading promotional campaigns...</p>
                 </div>
               ) : coupons.length === 0 ? (
@@ -521,7 +521,7 @@ export default function MenuManagementPage() {
                     >
                       <div>
                         <div className="flex justify-between items-start">
-                          <span className="font-extrabold tracking-wider bg-[#febf8c]/35 text-[#82542a] border border-[#febf8c]/40 px-3.5 py-1 rounded-xl text-sm font-mono uppercase">
+                          <span className="font-extrabold tracking-wider bg-coffee-200/35 text-coffee-500 border border-coffee-200/40 px-3.5 py-1 rounded-xl text-sm font-mono uppercase">
                             {coupon.code}
                           </span>
                           
@@ -616,7 +616,7 @@ export default function MenuManagementPage() {
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g. Americano"
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                   />
                 </div>
 
@@ -627,7 +627,7 @@ export default function MenuManagementPage() {
                     value={formDesc}
                     onChange={(e) => setFormDesc(e.target.value)}
                     placeholder="Brief recipe details or serving size..."
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                   />
                 </div>
 
@@ -640,7 +640,7 @@ export default function MenuManagementPage() {
                     value={formPrice}
                     onChange={(e) => setFormPrice(e.target.value)}
                     placeholder="4.50"
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                   />
                 </div>
 
@@ -649,7 +649,7 @@ export default function MenuManagementPage() {
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -667,7 +667,7 @@ export default function MenuManagementPage() {
                     value={formStock}
                     onChange={(e) => setFormStock(e.target.value)}
                     placeholder="250"
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                   />
                 </div>
 
@@ -679,7 +679,7 @@ export default function MenuManagementPage() {
                     value={formThreshold}
                     onChange={(e) => setFormThreshold(e.target.value)}
                     placeholder="10"
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                   />
                 </div>
 
@@ -692,7 +692,7 @@ export default function MenuManagementPage() {
                         setUploadError(null);
                         setImageInputMode(imageInputMode === "upload" ? "url" : "upload");
                       }}
-                      className="text-xs font-bold text-[#82542a] hover:underline flex items-center gap-1"
+                      className="text-xs font-bold text-coffee-500 hover:underline flex items-center gap-1"
                     >
                       {imageInputMode === "upload" ? (
                         <>
@@ -740,7 +740,7 @@ export default function MenuManagementPage() {
                         <label className={`relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer flex flex-col items-center justify-center gap-2 transition-all min-h-32 ${
                           uploading
                             ? "border-gray-200 bg-gray-50 cursor-not-allowed"
-                            : "border-gray-300 hover:border-[#82542a] hover:bg-[#82542a]/5"
+                            : "border-gray-300 hover:border-coffee-500 hover:bg-coffee-500/5"
                         }`}>
                           <input
                             type="file"
@@ -751,18 +751,18 @@ export default function MenuManagementPage() {
                           />
                           {uploading ? (
                             <div className="flex flex-col items-center gap-2">
-                              <Loader2 className="animate-spin text-[#82542a]" size={24} />
+                              <Loader2 className="animate-spin text-coffee-500" size={24} />
                               <p className="text-sm font-semibold text-gray-700">Uploading product image...</p>
                               <p className="text-xs text-gray-400">Processing on Cloudinary/local storage</p>
                             </div>
                           ) : (
                             <div className="flex flex-col items-center gap-2">
-                              <div className="p-2 rounded-xl bg-amber-50 text-[#82542a]">
+                              <div className="p-2 rounded-xl bg-amber-50 text-coffee-500">
                                 <Upload size={20} />
                               </div>
                               <div>
                                 <p className="text-xs font-bold text-gray-700">
-                                  Drag & drop image here, or <span className="text-[#82542a] underline">browse</span>
+                                  Drag & drop image here, or <span className="text-coffee-500 underline">browse</span>
                                 </p>
                                 <p className="text-[10px] text-gray-400 mt-0.5">Supports PNG, JPG, WEBP, GIF (Max 5MB)</p>
                               </div>
@@ -785,7 +785,7 @@ export default function MenuManagementPage() {
                         value={formImageUrl}
                         onChange={(e) => setFormImageUrl(e.target.value)}
                         placeholder="https://example.com/image.png"
-                        className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-[#82542a]"
+                        className="w-full text-sm rounded-xl border border-gray-200 bg-white px-4 py-2.5 outline-none focus:border-coffee-500"
                       />
                       <p className="text-[10px] text-gray-400 mt-1.5 font-medium pl-1">
                         Use this to reference external CDNs or web image URLs directly.
@@ -800,7 +800,7 @@ export default function MenuManagementPage() {
                     id="available"
                     checked={formAvailable}
                     onChange={(e) => setFormAvailable(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#82542a] focus:ring-[#82542a]"
+                    className="h-4 w-4 rounded border-gray-300 text-coffee-500 focus:ring-coffee-500"
                   />
                   <label htmlFor="available" className="text-sm font-semibold text-gray-700">
                     Product is available to sell
@@ -819,7 +819,7 @@ export default function MenuManagementPage() {
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="flex items-center gap-2 rounded-xl bg-[#170f0a] px-6 py-2.5 font-bold text-white hover:opacity-90 disabled:opacity-50 text-sm"
+                  className="flex items-center gap-2 rounded-xl bg-coffee-950 px-6 py-2.5 font-bold text-white hover:opacity-90 disabled:opacity-50 text-sm"
                 >
                   {modalLoading && <Loader2 className="animate-spin" size={14} />}
                   Save Product
@@ -853,7 +853,7 @@ export default function MenuManagementPage() {
                   placeholder="e.g. LATTE50"
                   value={couponFormCode}
                   onChange={(e) => setCouponFormCode(e.target.value.toUpperCase())}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10 uppercase font-mono tracking-wider"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10 uppercase font-mono tracking-wider"
                 />
               </div>
 
@@ -863,7 +863,7 @@ export default function MenuManagementPage() {
                   <select
                     value={couponFormType}
                     onChange={(e) => setCouponFormType(e.target.value)}
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a]"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-coffee-500"
                   >
                     <option value="percentage">Percentage (%)</option>
                     <option value="fixed">Fixed Cash ($)</option>
@@ -879,7 +879,7 @@ export default function MenuManagementPage() {
                     placeholder="10.00"
                     value={couponFormValue}
                     onChange={(e) => setCouponFormValue(e.target.value)}
-                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                    className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10"
                   />
                 </div>
               </div>
@@ -891,7 +891,7 @@ export default function MenuManagementPage() {
                   required
                   value={couponFormExpiry}
                   onChange={(e) => setCouponFormExpiry(e.target.value)}
-                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                  className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10"
                 />
               </div>
 
@@ -901,7 +901,7 @@ export default function MenuManagementPage() {
                   id="coupon_active"
                   checked={couponFormActive}
                   onChange={(e) => setCouponFormActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#82542a] focus:ring-[#82542a]"
+                  className="h-4 w-4 rounded border-gray-300 text-coffee-500 focus:ring-coffee-500"
                 />
                 <label htmlFor="coupon_active" className="text-sm font-semibold text-gray-700">
                   Coupon is active to use
@@ -919,7 +919,7 @@ export default function MenuManagementPage() {
                 <button
                   type="submit"
                   disabled={couponModalLoading}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#170f0a] px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-xl bg-coffee-950 px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-50"
                 >
                   {couponModalLoading && <Loader2 className="animate-spin" size={12} />}
                   Create Promo

@@ -146,10 +146,10 @@ export default function EspressoProDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-screen overflow-hidden bg-[#f8f9ff]">
+      <div className="flex h-screen overflow-hidden bg-coffee-50">
         <Sidebar />
         <main className="flex-1 flex flex-col items-center justify-center gap-4">
-          <Loader2 className="animate-spin text-[#82542a]" size={36} />
+          <Loader2 className="animate-spin text-coffee-500" size={36} />
           <p className="text-gray-500 font-semibold font-sans">Generating coffee shop analytics...</p>
         </main>
       </div>
@@ -175,7 +175,7 @@ export default function EspressoProDashboard() {
   const loyaltyRevPct = totalCRMRev > 0 ? (revLoyalty / totalCRMRev) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] text-slate-900 flex font-sans">
+    <div className="min-h-screen bg-coffee-50 text-slate-900 flex font-sans">
       {/* Sidebar */}
       <Sidebar />
 
@@ -184,7 +184,7 @@ export default function EspressoProDashboard() {
         {/* Header */}
         <header className="sticky top-0 z-40 h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-10 shrink-0">
           <div>
-            <h1 className="text-xl font-black text-[#170f0a]">Admin Insights</h1>
+            <h1 className="text-xl font-black text-coffee-950">Admin Insights</h1>
             <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
               Real-time Business Performance
             </p>
@@ -209,7 +209,7 @@ export default function EspressoProDashboard() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-black tracking-tight text-[#170f0a]">
+              <h2 className="text-3xl font-black tracking-tight text-coffee-950">
                 Branch Performance
               </h2>
               <p className="text-slate-500 text-sm mt-1">
@@ -294,7 +294,7 @@ export default function EspressoProDashboard() {
 
                 <div className="p-3 bg-slate-50 border rounded-xl flex justify-between text-xs font-bold text-slate-500">
                   <span>New Members (30d):</span>
-                  <span className="text-[#82542a] font-black">+{loyalty.new_registrations_30d} registered</span>
+                  <span className="text-coffee-500 font-black">+{loyalty.new_registrations_30d} registered</span>
                 </div>
               </div>
 
@@ -315,13 +315,13 @@ export default function EspressoProDashboard() {
                       {/* Simple visual HTML Circular ring using SVG */}
                       <svg className="w-full h-full transform -rotate-90">
                         <circle cx="64" cy="64" r="54" className="stroke-slate-100 fill-none stroke-[10]" />
-                        <circle cx="64" cy="64" r="54" className="stroke-amber-600 fill-none stroke-[10] transition-all duration-500"
+                        <circle cx="64" cy="64" r="54" className="stroke-coffee-500 fill-none stroke-[10] transition-all duration-500"
                                 strokeDasharray={339}
                                 strokeDashoffset={339 - (339 * loyaltyRevPct) / 100}
                                 strokeLinecap="round" />
                       </svg>
                       <div className="absolute flex flex-col items-center">
-                        <span className="text-2xl font-black text-[#170f0a]">{loyaltyRevPct.toFixed(0)}%</span>
+                        <span className="text-2xl font-black text-coffee-950">{loyaltyRevPct.toFixed(0)}%</span>
                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-0.5">CRM Share</span>
                       </div>
                     </div>
@@ -330,7 +330,7 @@ export default function EspressoProDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-xs">
                       <div className="flex items-center gap-1.5 font-bold text-gray-600">
-                        <span className="w-2.5 h-2.5 bg-amber-600 rounded-xs" />
+                        <span className="w-2.5 h-2.5 bg-coffee-500 rounded-xs" />
                         Loyalty Members
                       </div>
                       <span className="font-extrabold text-gray-900">${revLoyalty.toFixed(2)}</span>
@@ -378,8 +378,8 @@ export default function EspressoProDashboard() {
                     </div>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-[#febf8c]/15 border border-[#febf8c]/20">
-                    <p className="text-[10px] text-[#794c23] leading-relaxed">
+                  <div className="p-3.5 rounded-xl bg-coffee-200/15 border border-coffee-200/20">
+                    <p className="text-[10px] text-coffee-600 leading-relaxed">
                       <span className="font-bold">Barista Alert:</span> Daily coffee demand is highest on mornings and weekends. Ensure ingredients are well stocked.
                     </p>
                   </div>
@@ -406,7 +406,7 @@ export default function EspressoProDashboard() {
                         ${dp.revenue.toFixed(2)}
                       </div>
                       <div
-                        className="w-full rounded-t-lg bg-gradient-to-t from-[#82542a] to-[#febf8c] group-hover:opacity-85 transition-all duration-300 shadow-xs"
+                        className="w-full rounded-t-lg bg-gradient-to-t from-coffee-500 to-coffee-200 group-hover:opacity-85 transition-all duration-300 shadow-xs"
                         style={{ height: `${Math.max(pct, 4)}%` }}
                       />
                     </div>
@@ -491,9 +491,9 @@ export default function EspressoProDashboard() {
                   topProducts.map((p, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 transition border border-gray-50 bg-[#faf8f5]/40"
+                      className="flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 transition border border-gray-50 bg-coffee-50/40"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-amber-50 text-[#82542a] flex items-center justify-center font-black text-xs">
+                      <div className="w-8 h-8 rounded-lg bg-amber-50 text-coffee-500 flex items-center justify-center font-black text-xs">
                         #{idx + 1}
                       </div>
 
@@ -578,13 +578,13 @@ function KPI_Card({
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:shadow-md transition">
       <div className="flex items-center justify-between mb-4">
-        <div className="w-12 h-12 rounded-xl bg-[#febf8c]/25 text-[#82542a] flex items-center justify-center shrink-0">
+        <div className="w-12 h-12 rounded-xl bg-coffee-200/25 text-coffee-500 flex items-center justify-center shrink-0">
           {icon}
         </div>
         <span className="text-[10px] uppercase tracking-wider text-slate-400 font-extrabold">{title}</span>
       </div>
 
-      <h3 className="text-2xl font-black tracking-tight text-[#170f0a]">{value}</h3>
+      <h3 className="text-2xl font-black tracking-tight text-coffee-950">{value}</h3>
       <p className="text-[10px] text-slate-400 font-bold mt-1.5">{change}</p>
     </div>
   );

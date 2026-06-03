@@ -514,7 +514,7 @@ export default function DashboardPage() {
                   placeholder="Loyalty phone number..."
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10"
                 />
                 <button
                   onClick={handleLookupCustomer}
@@ -524,7 +524,7 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={handleSimulateScan}
-                  className="text-xs font-bold px-3 py-2 border border-amber-200 bg-amber-50 hover:bg-amber-100 text-[#82542a] rounded-xl transition hover:shadow-xs active:scale-95 flex items-center gap-1.5 shrink-0"
+                  className="text-xs font-bold px-3 py-2 border border-amber-200 bg-amber-50 hover:bg-amber-100 text-coffee-500 rounded-xl transition hover:shadow-xs active:scale-95 flex items-center gap-1.5 shrink-0"
                 >
                   <QrCode size={13} />
                   Scan QR
@@ -564,7 +564,7 @@ export default function DashboardPage() {
                   placeholder="Coupon code..."
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+                  className="flex-1 text-xs rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10"
                 />
                 <button
                   onClick={handleApplyCoupon}
@@ -607,8 +607,8 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex justify-between pt-2 border-t border-gray-100">
-              <span className="text-base font-extrabold text-[#170f0a]">Total</span>
-              <span className="text-xl font-extrabold text-[#82542a]">
+              <span className="text-base font-extrabold text-coffee-950">Total</span>
+              <span className="text-xl font-extrabold text-coffee-500">
                 ${total.toFixed(2)}
               </span>
             </div>
@@ -724,9 +724,9 @@ export default function DashboardPage() {
                 <button
                   onClick={() => handleCheckout("qr")}
                   disabled={checkoutLoading || cart.length === 0}
-                  className="flex flex-col h-14 items-center justify-center rounded-xl border border-[#82542a] bg-[#82542a]/5 hover:bg-[#82542a]/10 active:scale-95 transition text-xs font-bold text-[#82542a] disabled:opacity-50"
+                  className="flex flex-col h-14 items-center justify-center rounded-xl border border-coffee-500 bg-coffee-500/5 hover:bg-coffee-500/10 active:scale-95 transition text-xs font-bold text-coffee-500 disabled:opacity-50"
                 >
-                  <QrCode size={18} className="mb-1 text-[#82542a]" />
+                  <QrCode size={18} className="mb-1 text-coffee-500" />
                   QR Pay
                 </button>
               </div>
@@ -753,7 +753,7 @@ export default function DashboardPage() {
             <button
               onClick={() => handleCheckout("split")}
               disabled={checkoutLoading || cart.length === 0 || remainingSplit > 0.01}
-              className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-[#82542a] hover:bg-[#6c4420] text-base font-bold text-white transition active:scale-[0.98] disabled:opacity-50 font-sans shadow-md"
+              className="flex h-14 w-full items-center justify-center gap-3 rounded-xl bg-coffee-500 hover:bg-coffee-600 text-base font-bold text-white transition active:scale-[0.98] disabled:opacity-50 font-sans shadow-md"
             >
               {checkoutLoading ? (
                 <>
@@ -776,7 +776,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f9ff]">
+    <div className="flex h-screen overflow-hidden bg-coffee-50">
       {/* Sidebar */}
       <Sidebar />
 
@@ -794,7 +794,7 @@ export default function DashboardPage() {
               placeholder="Search coffee or baked goods..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-11 pr-4 outline-none focus:border-[#82542a] focus:ring-4 focus:ring-[#82542a]/10"
+              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-11 pr-4 outline-none focus:border-coffee-500 focus:ring-4 focus:ring-coffee-500/10"
             />
           </div>
 
@@ -804,7 +804,7 @@ export default function DashboardPage() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#82542a] flex items-center justify-center text-white font-bold uppercase text-sm">
+              <div className="w-10 h-10 rounded-full bg-coffee-500 flex items-center justify-center text-white font-bold uppercase text-sm">
                 {user ? user.full_name.charAt(0) : "C"}
               </div>
 
@@ -838,7 +838,7 @@ export default function DashboardPage() {
               onClick={() => setSelectedCategory("all")}
               className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition shrink-0 ${
                 selectedCategory === "all"
-                  ? "bg-[#2d241e] text-white"
+                  ? "bg-coffee-700 text-white"
                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
@@ -850,7 +850,7 @@ export default function DashboardPage() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition shrink-0 ${
                   selectedCategory === cat.id
-                    ? "bg-[#2d241e] text-white"
+                    ? "bg-coffee-700 text-white"
                     : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                 }`}
               >
@@ -860,7 +860,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-[#170f0a]">
+            <h2 className="text-2xl font-bold text-coffee-950">
               Menu Selection
             </h2>
             <p className="text-gray-500 text-sm mt-1">
@@ -870,7 +870,7 @@ export default function DashboardPage() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 className="animate-spin text-[#82542a]" size={36} />
+              <Loader2 className="animate-spin text-coffee-500" size={36} />
               <p className="text-gray-500 font-medium">Loading store menu...</p>
             </div>
           ) : filteredProducts.length === 0 ? (
@@ -899,14 +899,14 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-[#82542a] shadow-sm">
+                    <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-coffee-500 shadow-sm">
                       ${product.price.toFixed(2)}
                     </div>
                   </div>
 
                   <div className="p-4 flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 className="text-base font-bold text-[#170f0a] line-clamp-1">
+                      <h3 className="text-base font-bold text-coffee-950 line-clamp-1">
                         {product.name}
                       </h3>
                       <p className="mt-1 text-xs text-gray-500 line-clamp-2">
@@ -940,14 +940,14 @@ export default function DashboardPage() {
       {cart.length > 0 && (
         <button
           onClick={() => setCartDrawerOpen(true)}
-          className="xl:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2.5 rounded-full bg-[#170f0a] px-6 py-4 font-bold text-white shadow-xl hover:opacity-90 active:scale-95 transition-all shadow-[#2d241e]/30"
+          className="xl:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2.5 rounded-full bg-coffee-950 px-6 py-4 font-bold text-white shadow-xl hover:opacity-90 active:scale-95 transition-all shadow-coffee-700/30"
         >
-          <ShoppingBag size={20} className="text-[#febf8c]" />
+          <ShoppingBag size={20} className="text-coffee-200" />
           <span>View Ticket</span>
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#82542a] text-[10px] text-white">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-coffee-500 text-[10px] text-white">
             {cart.reduce((sum, item) => sum + item.quantity, 0)}
           </span>
-          <span className="border-l border-white/20 pl-2.5 text-[#febf8c]">
+          <span className="border-l border-white/20 pl-2.5 text-coffee-200">
             ${total.toFixed(2)}
           </span>
         </button>
@@ -969,7 +969,7 @@ export default function DashboardPage() {
       >
         <div className="flex items-center justify-between border-b border-gray-200 p-5 shrink-0">
           <div>
-            <h2 className="text-lg font-bold text-[#170f0a]">Current Ticket</h2>
+            <h2 className="text-lg font-bold text-coffee-950">Current Ticket</h2>
             <p className="text-xs text-gray-400">Mobile Checkout Terminal</p>
           </div>
           <button
@@ -990,12 +990,12 @@ export default function DashboardPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl flex flex-col items-center border max-h-[90vh] overflow-y-auto animate-scale-up">
             {/* Realistic Thermal Paper Styling */}
-            <div className="w-full bg-[#faf8f5] border border-gray-200 shadow-inner p-5 font-mono text-xs text-gray-800 rounded-lg relative overflow-hidden select-none">
+            <div className="w-full bg-coffee-50 border border-gray-200 shadow-inner p-5 font-mono text-xs text-gray-800 rounded-lg relative overflow-hidden select-none">
               {/* Paper Top Jagged Edge Mockup */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-[radial-gradient(ellipse_at_top,_#e2e8f0_2px,_transparent_0)] bg-[length:8px_8px] bg-repeat-x"></div>
               
               <div className="text-center space-y-1 mt-2">
-                <Coffee className="mx-auto text-[#82542a] mb-1" size={24} />
+                <Coffee className="mx-auto text-coffee-500 mb-1" size={24} />
                 <h3 className="font-extrabold text-sm tracking-widest text-black">ESPRESSOPRO CAFE</h3>
                 <p className="text-[10px] text-gray-500">128 Barista Ave, Brew Town</p>
                 <p className="text-[10px] text-gray-500">Tel: +1 (555) 987-6543</p>
@@ -1115,9 +1115,9 @@ export default function DashboardPage() {
                 Print Ticket
               </button>
               <button
-                onClick={() => setReceiptData(null)}
-                className="flex-1 rounded-xl bg-[#170f0a] py-3 text-xs font-bold text-white hover:opacity-90 transition active:scale-95"
-              >
+                  onClick={() => setReceiptData(null)}
+                  className="flex-1 rounded-xl bg-coffee-950 py-3 text-xs font-bold text-white hover:opacity-90 transition active:scale-95"
+                >
                 New Order
               </button>
             </div>
@@ -1146,7 +1146,7 @@ export default function DashboardPage() {
       {/* Celebratory Points & Tier Status Upgrade Popup */}
       {celebrationData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="relative bg-gradient-to-br from-[#170f0a] to-[#2d1e15] border border-amber-500/30 rounded-3xl max-w-md w-full p-8 text-center shadow-2xl overflow-hidden animate-scale-up">
+          <div className="relative bg-gradient-to-br from-coffee-950 to-coffee-700 border border-amber-500/30 rounded-3xl max-w-md w-full p-8 text-center shadow-2xl overflow-hidden animate-scale-up">
             
             {/* Decorative sparkles */}
             <div className="absolute top-4 left-6 text-amber-400/40 animate-pulse text-lg">✦</div>
