@@ -27,6 +27,10 @@ def populate_customer_defaults(customer):
         customer.tier = "Bronze"
     if not hasattr(customer, "visit_count") or getattr(customer, "visit_count") is None:
         customer.visit_count = 0
+    if not hasattr(customer, "last_visit_at") or getattr(customer, "last_visit_at") is None:
+        customer.last_visit_at = None
+    if not hasattr(customer, "points_expiry_date") or getattr(customer, "points_expiry_date") is None:
+        customer.points_expiry_date = None
     return customer
 
 @router.post("", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)

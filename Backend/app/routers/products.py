@@ -234,9 +234,7 @@ async def update_product(
     # Update recipe if provided
     if recipe_data is not None:
         # Clear existing recipe first
-        await db.execute(
-            ProductIngredient.__table__.delete().where(ProductIngredient.product_id == product_id)
-        )
+        await db["product_ingredients"].delete_many({"product_id": str(product_id)})
         for r_item in recipe_data:
             ing = await ingredient_repo.get(db, r_item.ingredient_id)
             if not ing:

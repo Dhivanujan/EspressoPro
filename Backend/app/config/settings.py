@@ -45,7 +45,12 @@ class Settings(BaseSettings):
             try:
                 return json.loads(v)
             except Exception:
-                return [v]
+                try:
+                    cleaned = v.strip("[]").replace("'", '"')
+                    return json.loads(f"[{cleaned}]")
+                except Exception:
+                    import re
+                    return [orig.strip(" \"'") for orig in re.split(r',', v.strip("[]"))]
         return v
 
 settings = Settings()

@@ -25,6 +25,10 @@ def populate_customer_defaults(customer):
         customer.tier = "Bronze"
     if not hasattr(customer, "visit_count") or getattr(customer, "visit_count") is None:
         customer.visit_count = 0
+    if not hasattr(customer, "last_visit_at") or getattr(customer, "last_visit_at") is None:
+        customer.last_visit_at = None
+    if not hasattr(customer, "points_expiry_date") or getattr(customer, "points_expiry_date") is None:
+        customer.points_expiry_date = None
     return customer
 
 class AnalyticsService:
@@ -162,14 +166,14 @@ class AnalyticsService:
         
         for c in customers:
             # Check 30d registration
-            c_created = c.created_at
+            c_created = getattr(c, "created_at", None)
             if isinstance(c_created, str):
                 c_created = datetime.fromisoformat(c_created.replace("Z", "+00:00"))
             if c_created and c_created.replace(tzinfo=timezone.utc) >= thirty_days_ago:
                 new_registrations_30d += 1
                 
             # Check active status
-            c_visit = c.last_visit_at
+            c_visit = getattr(c, "last_visit_at", None)
             if isinstance(c_visit, str):
                 c_visit = datetime.fromisoformat(c_visit.replace("Z", "+00:00"))
             if c_visit and c_visit.replace(tzinfo=timezone.utc) >= thirty_days_ago:
