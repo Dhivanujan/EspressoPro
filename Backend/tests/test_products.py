@@ -75,3 +75,31 @@ async def test_category_and_product_flow(client: AsyncClient, test_admin: User, 
         headers=admin_headers
     )
     assert admin_delete_response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_product_image_upload(client: AsyncClient, test_admin: User):
+    """
+    Test uploading a product image (Admin only).
+    """
+    # 1. Login as Admin
+    admin_login = await client.post(
+        "/api/v1/auth/login",
+        data={"username": "admin_test", "password": "adminpass"}
+    )
+    admin_token = admin_login.json()["access_token"]
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
+    # 2. Upload image (valid GIF structure)
+    gif_bytes = b"GIF89a\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    files = {"file": ("test.gif", gif_bytes, "image/gif")}
+    response = await client.post(
+        "/api/v1/products/upload-image",
+        files=files,
+        headers=admin_headers
+    )
+    assert response.status_code == 201
+    res_data = response.json()
+    assert "url" in res_data
+    assert "provider" in res_data
+
