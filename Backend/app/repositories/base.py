@@ -30,8 +30,8 @@ class BaseRepository(Generic[ModelType]):
         data.pop("_id", None)
         
         # Auto-populate created_at and updated_at
-        from datetime import datetime
-        now = datetime.utcnow()
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         if "created_at" not in data or not data["created_at"]:
             data["created_at"] = now
         if "updated_at" not in data or not data["updated_at"]:
@@ -66,8 +66,8 @@ class BaseRepository(Generic[ModelType]):
         update_data = {k: v for k, v in update_data.items() if k not in ("id", "_id")}
         
         # Auto-update updated_at
-        from datetime import datetime
-        update_data["updated_at"] = datetime.utcnow()
+        from datetime import datetime, timezone
+        update_data["updated_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
         
         # Recursively convert Decimal to float for PyMongo compatibility
         from decimal import Decimal

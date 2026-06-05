@@ -53,9 +53,42 @@ export default function KitchenDisplayPage() {
 
   useEffect(() => {
     loadOrders();
-    // Auto-refresh every 5 seconds for live kitchen updates
-    const interval = setInterval(loadOrders, 5000);
-    return () => clearInterval(interval);
+    // Fallback polling (every 30 seconds)
+    const interval = setInterval(loadOrders, 30000);
+
+    // Live WebSocket Sync
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const socketUrl = apiBaseUrl.replace(/^http/, "ws") + "/api/v1/ws/orders";
+    
+    let ws: WebSocket;
+    let reconnectTimeout: any;
+
+    function connect() {
+      ws = new WebSocket(socketUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event) {
+            loadOrders();
+          }
+        } catch (e) {
+          console.error("Failed to parse websocket event", e);
+        }
+      };
+
+      ws.onclose = () => {
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+    }
+
+    connect();
+
+    return () => {
+      clearInterval(interval);
+      if (ws) ws.close();
+      clearTimeout(reconnectTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

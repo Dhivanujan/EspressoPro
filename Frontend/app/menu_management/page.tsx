@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import Sidebar from "../../components/Sidebar";
 import { apiGet, apiPost, apiPut, apiDelete, getProductImageUrl } from "../../lib/api";
 import { Coffee, Search, Plus, Edit3, Trash2, X, Loader2, Upload, Link, AlertCircle } from "lucide-react";
@@ -108,7 +109,7 @@ export default function MenuManagementPage() {
       setCouponFormActive(true);
       await loadData();
     } catch (err: any) {
-      alert(err.message || "Failed to create promotion coupon.");
+      toast.error(err.message || "Failed to create promotion coupon.");
     } finally {
       setCouponModalLoading(false);
     }
@@ -120,7 +121,7 @@ export default function MenuManagementPage() {
       await apiDelete(`/api/v1/coupons/${couponId}`);
       await loadData();
     } catch (err: any) {
-      alert(err.message || "Failed to delete coupon.");
+      toast.error(err.message || "Failed to delete coupon.");
     }
   };
 
@@ -238,7 +239,7 @@ export default function MenuManagementPage() {
       setShowModal(false);
       await loadData();
     } catch (err: any) {
-      alert(err.message || "Failed to save product.");
+      toast.error(err.message || "Failed to save product.");
     } finally {
       setModalLoading(false);
     }
@@ -250,7 +251,7 @@ export default function MenuManagementPage() {
       await apiDelete(`/api/v1/products/${id}`);
       await loadData();
     } catch (err: any) {
-      alert(err.message || "Failed to delete product.");
+      toast.error(err.message || "Failed to delete product.");
     }
   };
 

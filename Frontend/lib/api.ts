@@ -8,11 +8,14 @@ export function getProductImageUrl(url: string | null | undefined): string {
   if (trimmedUrl.startsWith("/")) {
     return `${API_BASE_URL}${trimmedUrl}`;
   }
-  // Normalize protocols to HTTPS
+  // Normalize protocols to HTTPS, except for local addresses
   if (trimmedUrl.startsWith("http://")) {
+    if (trimmedUrl.includes("localhost") || trimmedUrl.includes("127.0.0.1")) {
+      return trimmedUrl;
+    }
     return trimmedUrl.replace("http://", "https://");
   }
-  if (!trimmedUrl.startsWith("https://")) {
+  if (!trimmedUrl.startsWith("https://") && !trimmedUrl.startsWith("http://")) {
     return `https://${trimmedUrl}`;
   }
   return trimmedUrl;
@@ -58,7 +61,24 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+    let errorMessage = "Request failed";
+    if (errorData.detail) {
+      if (Array.isArray(errorData.detail)) {
+        errorMessage = errorData.detail
+          .map((err: any) => {
+            const field = err.loc ? err.loc.filter((l: any) => l !== "body").join(".") : "";
+            return field ? `${field}: ${err.msg}` : err.msg;
+          })
+          .join(", ");
+      } else if (typeof errorData.detail === "string") {
+        errorMessage = errorData.detail;
+      } else {
+        errorMessage = JSON.stringify(errorData.detail);
+      }
+    } else {
+      errorMessage = `Request failed with status ${response.status}`;
+    }
+    throw new Error(errorMessage);
   }
 
   // Handle empty or 204 responses

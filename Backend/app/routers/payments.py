@@ -47,8 +47,8 @@ async def get_loyalty_config(db):
             "tier_multipliers": {"Bronze": 1.0, "Silver": 1.1, "Gold": 1.25, "Platinum": 1.5},
             "tier_thresholds": {"Bronze": 0.0, "Silver": 200.0, "Gold": 500.0, "Platinum": 1000.0},
             "points_expiry_days": 365,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc).replace(tzinfo=None),
+            "updated_at": datetime.now(timezone.utc).replace(tzinfo=None)
         }
         res = await db["loyalty_config"].insert_one(default_config)
         default_config["_id"] = res.inserted_id
@@ -57,7 +57,7 @@ async def get_loyalty_config(db):
 
 # Helper to calculate active campaign multiplier
 async def get_active_campaign_multiplier(db, customer_birthdate: Optional[str] = None):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     campaign_docs = await db["loyalty_campaigns"].find({"active": True}).to_list(length=100)
     
     multiplier = 1.0
@@ -212,7 +212,7 @@ async def process_payment(
             "points": points_to_deduct,
             "reason": f"Redeemed at checkout for order {order.order_number}",
             "adjusted_by": current_user.username,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc).replace(tzinfo=None)
         }
         await db["loyalty_transactions"].insert_one(redemption_tx)
 
@@ -246,8 +246,8 @@ async def process_payment(
                 customer.lifetime_points += points_earned
                 customer.lifetime_spending = Decimal(str(customer.lifetime_spending)) + gross_paid
                 customer.visit_count += 1
-                customer.last_visit_at = datetime.utcnow()
-                customer.points_expiry_date = datetime.utcnow() + timedelta(days=loyalty_config["points_expiry_days"])
+                customer.last_visit_at = datetime.now(timezone.utc).replace(tzinfo=None)
+                customer.points_expiry_date = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=loyalty_config["points_expiry_days"])
                 
                 # Check for tier auto-promotion
                 new_tier = determine_tier(customer.lifetime_spending, customer.lifetime_points, loyalty_config["tier_thresholds"])
@@ -263,7 +263,7 @@ async def process_payment(
                     "points": points_earned,
                     "reason": f"Purchase points. Campaign: {campaign_reason}. Tier multiplier: {tier_multiplier}x.",
                     "adjusted_by": current_user.username,
-                    "created_at": datetime.utcnow()
+                    "created_at": datetime.now(timezone.utc).replace(tzinfo=None)
                 }
                 await db["loyalty_transactions"].insert_one(earn_tx)
                 

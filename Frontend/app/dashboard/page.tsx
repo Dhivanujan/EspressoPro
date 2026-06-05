@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import Image from "next/image";
 import Sidebar from "../../components/Sidebar";
 import { useAuth } from "../../lib/auth";
@@ -107,6 +108,52 @@ export default function DashboardPage() {
       }
     }
     loadData();
+
+    // Live WebSocket Sync for products stock
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const socketUrl = apiBaseUrl.replace(/^http/, "ws") + "/api/v1/ws/orders";
+    
+    let ws: WebSocket;
+    let reconnectTimeout: any;
+
+    async function refreshProducts() {
+      try {
+        const fetchedProds = await apiGet<Product[]>("/api/v1/products");
+        const formattedProds = fetchedProds.map((p) => ({
+          ...p,
+          price: Number(p.price),
+        }));
+        setProducts(formattedProds);
+      } catch (err) {
+        console.error("Failed to refresh products", err);
+      }
+    }
+
+    function connect() {
+      ws = new WebSocket(socketUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event) {
+            refreshProducts();
+          }
+        } catch (e) {
+          console.error("Failed to parse websocket event", e);
+        }
+      };
+
+      ws.onclose = () => {
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+    }
+
+    connect();
+
+    return () => {
+      if (ws) ws.close();
+      clearTimeout(reconnectTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -125,7 +172,7 @@ export default function DashboardPage() {
     const existing = cart.find((item) => item.product.id === product.id);
     if (existing) {
       if (existing.quantity >= product.stock_quantity) {
-        alert(`Cannot add more. Only ${product.stock_quantity} items in stock.`);
+        toast.error(`Cannot add more. Only ${product.stock_quantity} items in stock.`);
         return;
       }
       setCart(
@@ -137,7 +184,7 @@ export default function DashboardPage() {
       );
     } else {
       if (product.stock_quantity < 1) {
-        alert("Product is out of stock!");
+        toast.error("Product is out of stock!");
         return;
       }
       setCart([...cart, { product, quantity: 1 }]);
@@ -151,7 +198,7 @@ export default function DashboardPage() {
           if (item.product.id === productId) {
             const newQty = item.quantity + delta;
             if (newQty > item.product.stock_quantity) {
-              alert(`Only ${item.product.stock_quantity} items in stock.`);
+              toast.error(`Only ${item.product.stock_quantity} items in stock.`);
               return item;
             }
             return { ...item, quantity: newQty };
@@ -309,7 +356,7 @@ export default function DashboardPage() {
         // Sum split balances
         const sumSplitsPaid = cashVal + cardVal + qrVal + pointsVal;
         if (sumSplitsPaid < total) {
-          alert(`Split payments sum of $${sumSplitsPaid.toFixed(2)} is less than total $${total.toFixed(2)}`);
+          toast.error(`Split payments sum of $${sumSplitsPaid.toFixed(2)} is less than total $${total.toFixed(2)}`);
           setCheckoutLoading(false);
           return;
         }
@@ -400,7 +447,7 @@ export default function DashboardPage() {
       setSplitPoints("");
       setCartDrawerOpen(false);
     } catch (err: any) {
-      alert(err.message || "Failed to process order checkout.");
+      toast.error(err.message || "Failed to process order checkout.");
     } finally {
       setCheckoutLoading(false);
     }
@@ -1108,7 +1155,7 @@ export default function DashboardPage() {
             <div className="w-full flex gap-3 mt-5">
               <button
                 onClick={() => {
-                  alert("Receipt successfully sent to Barista Thermal Printer!");
+                  toast.success("Receipt successfully sent to Barista Thermal Printer!");
                 }}
                 className="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition active:scale-95"
               >

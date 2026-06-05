@@ -141,6 +141,39 @@ export default function EspressoProDashboard() {
 
   useEffect(() => {
     loadData();
+
+    // Live WebSocket Sync for admin analytics
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const socketUrl = apiBaseUrl.replace(/^http/, "ws") + "/api/v1/ws/orders";
+    
+    let ws: WebSocket;
+    let reconnectTimeout: any;
+
+    function connect() {
+      ws = new WebSocket(socketUrl);
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.event) {
+            loadData();
+          }
+        } catch (e) {
+          console.error("Failed to parse websocket event", e);
+        }
+      };
+
+      ws.onclose = () => {
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+    }
+
+    connect();
+
+    return () => {
+      if (ws) ws.close();
+      clearTimeout(reconnectTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

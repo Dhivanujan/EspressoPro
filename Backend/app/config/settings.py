@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480
 
     # CORS
-    ALLOWED_ORIGINS: Union[str, List[str]] = ["*"]
+    ALLOWED_ORIGINS: Union[str, List[str]] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     # Cloudinary Credentials (Resilient local uploads fallback if unset)
     CLOUDINARY_CLOUD_NAME: Optional[str] = None

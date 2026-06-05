@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getDefaultRoute, useAuth } from "../lib/auth";
@@ -159,7 +160,7 @@ export default function Sidebar() {
 
         <div className="space-y-1">
           <button
-            onClick={() => alert("Help Center is currently under maintenance. Please contact support.")}
+            onClick={() => toast.error("Help Center is currently under maintenance. Please contact support.")}
             className={`flex w-full items-center gap-3.5 rounded-xl px-4 py-3 text-sm transition ${
               isDark ? "text-gray-400 hover:text-white hover:bg-white/5" : "text-gray-400 hover:text-coffee-950 hover:bg-gray-50"
             }`}

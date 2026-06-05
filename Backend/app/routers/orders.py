@@ -243,11 +243,90 @@ async def cancel_order(
 
     # 2. Revert Loyalty Points
     if order.customer_id:
+        from decimal import Decimal
+        from datetime import datetime, timezone
+        from app.models.payment import Payment
+        from app.routers.payments import get_loyalty_config, determine_tier
+        
         cust_res = await db.execute(select(Customer).filter(Customer.id == order.customer_id))
         customer = cust_res.scalars().first()
         if customer:
-            points_to_revert = int(float(order.total) * settings.LOYALTY_POINT_REWARD_RATE)
-            customer.loyalty_points = max(0, customer.loyalty_points - points_to_revert)
+            # Populate defaults in case fields are None
+            if not hasattr(customer, "loyalty_points") or customer.loyalty_points is None:
+                customer.loyalty_points = 0
+            if not hasattr(customer, "lifetime_spending") or customer.lifetime_spending is None:
+                customer.lifetime_spending = Decimal("0.00")
+            if not hasattr(customer, "lifetime_points") or customer.lifetime_points is None:
+                customer.lifetime_points = 0
+            if not hasattr(customer, "tier") or customer.tier is None:
+                customer.tier = "Bronze"
+
+            # 1. Revert Earned Points
+            points_earned = getattr(order, "points_earned", 0) or 0
+            if not points_earned and getattr(order, "loyalty_points_awarded", False):
+                points_earned = int(float(order.total) * settings.LOYALTY_POINT_REWARD_RATE)
+            
+            if points_earned > 0:
+                customer.loyalty_points = max(0, customer.loyalty_points - points_earned)
+                customer.lifetime_points = max(0, customer.lifetime_points - points_earned)
+                
+                # Revert spending (gross_paid = order.total - points_paid)
+                points_paid = Decimal("0.00")
+                payment_res = await db.execute(select(Payment).filter(Payment.order_id == order.id))
+                payments_list = payment_res.scalars().all()
+                for p in payments_list:
+                    splits_list = getattr(p, "splits", []) or []
+                    for sp in splits_list:
+                        if sp.get("payment_method") == "points":
+                            points_paid += Decimal(str(sp.get("amount_paid", 0.0)))
+                            
+                gross_paid = max(Decimal("0.00"), Decimal(str(order.total)) - points_paid)
+                customer.lifetime_spending = max(Decimal("0.00"), Decimal(str(customer.lifetime_spending)) - gross_paid)
+                
+                # Log earned points reversion
+                earn_revert_tx = {
+                    "customer_id": str(customer.id),
+                    "order_id": order_id,
+                    "type": "reverted",
+                    "points": points_earned,
+                    "reason": f"Reverted earned points due to order cancellation: {order.order_number}",
+                    "adjusted_by": current_user.username,
+                    "created_at": datetime.now(timezone.utc).replace(tzinfo=None)
+                }
+                await db["loyalty_transactions"].insert_one(earn_revert_tx)
+
+            # 2. Refund/Restore Redeemed Points
+            points_redeemed = 0
+            payment_res = await db.execute(select(Payment).filter(Payment.order_id == order.id))
+            payments_list = payment_res.scalars().all()
+            
+            loyalty_config = await get_loyalty_config(db)
+            redemption_val = Decimal(str(loyalty_config["redemption_value_per_point"]))
+            
+            for p in payments_list:
+                splits_list = getattr(p, "splits", []) or []
+                for sp in splits_list:
+                    if sp.get("payment_method") == "points":
+                        amt = Decimal(str(sp.get("amount_paid", 0.0)))
+                        points_redeemed += int(amt / redemption_val)
+                        
+            if points_redeemed > 0:
+                customer.loyalty_points += points_redeemed
+                
+                # Log points refund
+                refund_tx = {
+                    "customer_id": str(customer.id),
+                    "order_id": order_id,
+                    "type": "refunded",
+                    "points": points_redeemed,
+                    "reason": f"Refunded redeemed points due to order cancellation: {order.order_number}",
+                    "adjusted_by": current_user.username,
+                    "created_at": datetime.now(timezone.utc).replace(tzinfo=None)
+                }
+                await db["loyalty_transactions"].insert_one(refund_tx)
+
+            # Recalculate tier
+            customer.tier = determine_tier(customer.lifetime_spending, customer.lifetime_points, loyalty_config["tier_thresholds"])
             db.add(customer)
             
     # 3. Mark status as cancelled

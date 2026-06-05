@@ -4,7 +4,7 @@ import asyncio
 import mimetypes
 from pathlib import Path
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import partial
 import cloudinary
 import cloudinary.uploader
@@ -78,7 +78,7 @@ class CloudinaryService:
         # Resilient Local Saving Fallback Engine
         try:
             extension = self._infer_extension(filename, content_type)
-            filename = f"{uuid.uuid4().hex}_{int(datetime.utcnow().timestamp())}{extension}"
+            filename = f"{uuid.uuid4().hex}_{int(datetime.now(timezone.utc).timestamp())}{extension}"
             filepath = os.path.join(self.local_upload_dir, filename)
 
             # Write file bytes locally

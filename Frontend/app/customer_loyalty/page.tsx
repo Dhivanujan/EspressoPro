@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import Sidebar from "../../components/Sidebar";
 import { apiGet, apiPost } from "../../lib/api";
 import {
@@ -121,7 +122,7 @@ export default function CustomerManagementPage() {
       await loadData();
       setSelectedCustomer(added);
     } catch (err: any) {
-      alert(err.message || "Failed to create customer profile.");
+      toast.error(err.message || "Failed to create customer profile.");
     } finally {
       setModalLoading(false);
     }
@@ -159,9 +160,9 @@ export default function CustomerManagementPage() {
       setCustomers(customers.map((c) => (c.id === updated.id ? updated : c)));
       await fetchTransactions(updated.id);
       
-      alert(`Loyalty points successfully adjusted! New Balance: ${updated.loyalty_points} points.`);
+      toast.success(`Loyalty points successfully adjusted! New Balance: ${updated.loyalty_points} points.`);
     } catch (err: any) {
-      alert(err.message || "Manual point override failed. Verify supervisor credentials.");
+      toast.error(err.message || "Manual point override failed. Verify supervisor credentials.");
     } finally {
       setAdjustLoading(false);
     }

@@ -67,8 +67,8 @@ async def get_loyalty_config(db):
             "tier_multipliers": {"Bronze": 1.0, "Silver": 1.1, "Gold": 1.25, "Platinum": 1.5},
             "tier_thresholds": {"Bronze": 0.0, "Silver": 200.0, "Gold": 500.0, "Platinum": 1000.0},
             "points_expiry_days": 365,
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
+            "created_at": datetime.now(timezone.utc).replace(tzinfo=None),
+            "updated_at": datetime.now(timezone.utc).replace(tzinfo=None)
         }
         res = await db["loyalty_config"].insert_one(default_config)
         default_config["_id"] = res.inserted_id
@@ -101,7 +101,7 @@ async def update_global_loyalty_config(
     config_id = config["_id"]
     
     update_data = config_in.model_dump(exclude_unset=True)
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
     
     await db["loyalty_config"].update_one({"_id": config_id}, {"$set": update_data})
     
@@ -137,8 +137,8 @@ async def create_campaign(
     Create a new seasonal loyalty campaign (Admin only).
     """
     payload = campaign_in.model_dump()
-    payload["created_at"] = datetime.utcnow()
-    payload["updated_at"] = datetime.utcnow()
+    payload["created_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
+    payload["updated_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
     
     res = await db["loyalty_campaigns"].insert_one(payload)
     payload["id"] = str(res.inserted_id)
@@ -233,7 +233,7 @@ async def manual_point_adjustment(
         "reason": adjustment.reason,
         "adjusted_by": current_user.username,
         "approved_by": approved_by,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now(timezone.utc).replace(tzinfo=None)
     }
     await db["loyalty_transactions"].insert_one(audit_tx)
     

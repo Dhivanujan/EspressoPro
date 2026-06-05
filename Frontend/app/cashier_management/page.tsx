@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import Sidebar from "../../components/Sidebar";
 import { apiGet, apiPost, apiPut, apiDelete } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
@@ -141,7 +142,7 @@ export default function CashierManagementPage() {
 
   const toggleStatus = async (user: User) => {
     if (user.id === currentUser?.id) {
-      alert("You cannot deactivate your own admin session.");
+      toast.error("You cannot deactivate your own admin session.");
       return;
     }
 
@@ -153,13 +154,13 @@ export default function CashierManagementPage() {
       // Update state locally
       setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)));
     } catch (err: any) {
-      alert(err.message || "Failed to toggle active status.");
+      toast.error(err.message || "Failed to toggle active status.");
     }
   };
 
   const handleDelete = async (user: User) => {
     if (user.id === currentUser?.id) {
-      alert("You cannot delete your own admin session.");
+      toast.error("You cannot delete your own admin session.");
       return;
     }
 
@@ -171,7 +172,7 @@ export default function CashierManagementPage() {
       await apiDelete(`/api/v1/auth/users/${user.id}`);
       await loadUsers();
     } catch (err: any) {
-      alert(err.message || "Failed to delete staff member.");
+      toast.error(err.message || "Failed to delete staff member.");
     }
   };
 
