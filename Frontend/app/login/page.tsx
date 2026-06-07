@@ -32,7 +32,7 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center relative overflow-hidden px-4 bg-cover bg-center"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(250,248,245,0.2), rgba(250,248,245,0.2)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuDOU8Uyr6FRBRx8UFl2Ovw83zEmQov8nQ2JCP6sR-UDXlIUoLrvNuAwECmR7HYXU0fqtP_vFSgzYrsK8ux3j6E05B_QUET4Wyu1invHNEqqI8murVilRJ2tLB-fytFnegZ6fFROZbOOOIsHqPWRy7LRn628K3_kacAUYkb-YAxjg4XGGW4OMn1Geslal7-WAEJ2zfw5frxFZwxr_3ssHxZ87vlFoRgWOcO1GckPXwKoyEHIDWCwcusGPvJOWFXVgbzgY3zeahG0ugs')",
+          "linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/coffee%20beans%20on%20wooden%20background.jpg')",
       }}
     >
       {/* Overlay */}

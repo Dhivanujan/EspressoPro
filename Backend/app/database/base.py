@@ -10,6 +10,17 @@ DECIMAL_FIELDS = {
 class MockColumn:
     def __init__(self, name):
         self.name = name
+        self.is_desc = False
+
+    def desc(self):
+        col = MockColumn(self.name)
+        col.is_desc = True
+        return col
+
+    def asc(self):
+        col = MockColumn(self.name)
+        col.is_desc = False
+        return col
 
     def __eq__(self, other):
         return BinaryExpression(self, other, "eq")
@@ -30,7 +41,7 @@ class MockColumn:
         return BinaryExpression(self, other, "ge")
 
     def __repr__(self):
-        return f"MockColumn({self.name})"
+        return f"MockColumn({self.name}, desc={self.is_desc})"
 
 class BinaryExpression:
     def __init__(self, left, right, op):

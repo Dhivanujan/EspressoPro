@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
-import { apiGet, apiPost } from "../../lib/api";
+import { apiGet, apiPost, apiDelete } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import {
   Package,
@@ -16,6 +16,7 @@ import {
   Loader2,
   X,
   Search,
+  Trash2,
 } from "lucide-react";
 
 interface Ingredient {
@@ -61,6 +62,7 @@ export default function InventoryManagementPage() {
   const [logs, setLogs] = useState<InventoryLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"ingredients" | "products">("ingredients");
 
   // Modals
   const [showAdjustModal, setShowAdjustModal] = useState(false);
@@ -162,6 +164,21 @@ export default function InventoryManagementPage() {
     ing.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Filter products by search query
+  const filteredProducts = products.filter((prod) =>
+    prod.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleDeleteIngredient = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete raw material "${name}"?`)) return;
+    try {
+      await apiDelete(`/api/v1/ingredients/${id}`);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete raw material");
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-coffee-50">
       {/* Sidebar */}
@@ -246,13 +263,45 @@ export default function InventoryManagementPage() {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Table Column */}
             <div className="flex-1 space-y-6">
+              {/* Tabs */}
+              <div className="flex border-b border-gray-200">
+                <button
+                  onClick={() => {
+                    setActiveTab("ingredients");
+                    setSearchQuery("");
+                  }}
+                  className={`pb-3 text-sm font-bold border-b-2 px-4 transition-all ${
+                    activeTab === "ingredients"
+                      ? "border-coffee-950 text-coffee-950"
+                      : "border-transparent text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Raw Materials ({ingredients.length})
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab("products");
+                    setSearchQuery("");
+                  }}
+                  className={`pb-3 text-sm font-bold border-b-2 px-4 transition-all ${
+                    activeTab === "products"
+                      ? "border-coffee-950 text-coffee-950"
+                      : "border-transparent text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Finished Products ({products.length})
+                </button>
+              </div>
+
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-bold text-gray-900">Raw Ingredients & Supplies</h2>
+                <h2 className="text-lg font-bold text-gray-900">
+                  {activeTab === "ingredients" ? "Raw Ingredients & Supplies" : "Finished Coffee & Bakery Products"}
+                </h2>
                 <div className="relative w-64 shrink-0">
                   <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search material..."
+                    placeholder={activeTab === "ingredients" ? "Search material..." : "Search product..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full text-xs rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-4 outline-none focus:border-coffee-500"
@@ -265,61 +314,130 @@ export default function InventoryManagementPage() {
                   <Loader2 className="animate-spin text-coffee-500" size={36} />
                   <p className="text-gray-500 text-sm font-medium">Scanning stock room...</p>
                 </div>
-              ) : filteredIngredients.length === 0 ? (
-                <div className="text-center py-20 bg-white border border-dashed rounded-2xl p-8">
-                  <p className="text-gray-500 font-semibold">No raw materials found.</p>
-                </div>
-              ) : (
-                <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-gray-50/70 border-b">
-                        <tr>
-                          {["Material Name", "Stock Level", "Alert Threshold", "Unit", "Status", ""].map((h) => (
-                            <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {filteredIngredients.map((item) => {
-                          const isLow = item.stock_quantity <= item.low_stock_threshold;
-                          return (
-                            <tr key={item.id} className={`border-t hover:bg-gray-50/50 ${isLow ? "bg-red-50/20" : ""}`}>
-                              <td className="px-6 py-4.5 font-bold text-gray-900">{item.name}</td>
-                              <td className={`px-6 py-4.5 font-bold ${isLow ? "text-red-600" : "text-gray-800"}`}>
-                                {item.stock_quantity.toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4.5 text-sm text-gray-500">
-                                {item.low_stock_threshold.toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4.5 text-sm text-gray-500 uppercase">{item.unit}</td>
-                              <td className="px-6 py-4.5">
-                                <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-extrabold ${
-                                  isLow ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"
-                                }`}>
-                                  {isLow ? "Low Stock" : "Healthy"}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4.5 text-right">
-                                {isAdmin && (
-                                  <button
-                                    onClick={() => handleOpenAdjust("ingredient", item.id)}
-                                    className="text-xs font-bold text-coffee-500 hover:underline"
-                                  >
-                                    Adjust
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+              ) : activeTab === "ingredients" ? (
+                // Ingredients Table
+                filteredIngredients.length === 0 ? (
+                  <div className="text-center py-20 bg-white border border-dashed rounded-2xl p-8">
+                    <p className="text-gray-500 font-semibold">No raw materials found.</p>
                   </div>
-                </div>
+                ) : (
+                  <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50/70 border-b">
+                          <tr>
+                            {["Material Name", "Stock Level", "Alert Threshold", "Unit", "Status", ""].map((h) => (
+                              <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">
+                                {h}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {filteredIngredients.map((item) => {
+                            const isLow = item.stock_quantity <= item.low_stock_threshold;
+                            return (
+                              <tr key={item.id} className={`border-t hover:bg-gray-50/50 ${isLow ? "bg-red-50/20" : ""}`}>
+                                <td className="px-6 py-4.5 font-bold text-gray-900">{item.name}</td>
+                                <td className={`px-6 py-4.5 font-bold ${isLow ? "text-red-600" : "text-gray-800"}`}>
+                                  {item.stock_quantity.toLocaleString()}
+                                </td>
+                                <td className="px-6 py-4.5 text-sm text-gray-500">
+                                  {item.low_stock_threshold.toLocaleString()}
+                                </td>
+                                <td className="px-6 py-4.5 text-sm text-gray-500 uppercase">{item.unit}</td>
+                                <td className="px-6 py-4.5">
+                                  <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-extrabold ${
+                                    isLow ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"
+                                  }`}>
+                                    {isLow ? "Low Stock" : "Healthy"}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4.5 text-right">
+                                  {isAdmin && (
+                                    <div className="flex justify-end gap-3">
+                                      <button
+                                        onClick={() => handleOpenAdjust("ingredient", item.id)}
+                                        className="text-xs font-bold text-coffee-500 hover:underline"
+                                      >
+                                        Adjust
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteIngredient(item.id, item.name)}
+                                        className="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1"
+                                      >
+                                        <Trash2 size={12} />
+                                        Delete
+                                      </button>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              ) : (
+                // Products Table
+                filteredProducts.length === 0 ? (
+                  <div className="text-center py-20 bg-white border border-dashed rounded-2xl p-8">
+                    <p className="text-gray-500 font-semibold">No products found.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead className="bg-gray-50/70 border-b">
+                          <tr>
+                            {["Product Name", "Stock Level", "Alert Threshold", "Status", ""].map((h) => (
+                              <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">
+                                {h}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {filteredProducts.map((item) => {
+                            const isLow = item.stock_quantity <= item.low_stock_threshold;
+                            return (
+                              <tr key={item.id} className={`border-t hover:bg-gray-50/50 ${isLow ? "bg-red-50/20" : ""}`}>
+                                <td className="px-6 py-4.5 font-bold text-gray-900">{item.name}</td>
+                                <td className={`px-6 py-4.5 font-bold ${isLow ? "text-red-600" : "text-gray-800"}`}>
+                                  {item.stock_quantity.toLocaleString()}
+                                </td>
+                                <td className="px-6 py-4.5 text-sm text-gray-500">
+                                  {item.low_stock_threshold.toLocaleString()}
+                                </td>
+                                <td className="px-6 py-4.5">
+                                  <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-extrabold ${
+                                    isLow ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"
+                                  }`}>
+                                    {isLow ? "Low Stock" : "Healthy"}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4.5 text-right">
+                                  {isAdmin && (
+                                    <button
+                                      onClick={() => handleOpenAdjust("product", item.id)}
+                                      className="text-xs font-bold text-coffee-500 hover:underline"
+                                    >
+                                      Adjust
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
               )}
             </div>
 

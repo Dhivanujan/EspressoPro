@@ -169,6 +169,19 @@ class MotorDatabaseWrapper:
                         query[col_name] = {"$lte": val}
             
             cursor = self._db[collection_name].find(query)
+            if statement.order_by_val:
+                sort_fields = []
+                for order_clause in statement.order_by_val:
+                    from app.database.base import MockColumn
+                    if isinstance(order_clause, MockColumn):
+                        col_name = order_clause.name
+                        if col_name == "id":
+                            col_name = "_id"
+                        direction = -1 if getattr(order_clause, "is_desc", False) else 1
+                        sort_fields.append((col_name, direction))
+                if sort_fields:
+                    cursor = cursor.sort(sort_fields)
+
             if statement.offset_val is not None:
                 cursor = cursor.skip(statement.offset_val)
             if statement.limit_val is not None:
