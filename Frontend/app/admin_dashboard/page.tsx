@@ -256,7 +256,7 @@ export default function EspressoProDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               <KPI_Card
                 title="Gross Revenue"
-                value={`$${stats.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`Rs. ${stats.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 change="All-time gross sales"
                 icon={<DollarSign size={24} />}
               />
@@ -268,7 +268,7 @@ export default function EspressoProDashboard() {
               />
               <KPI_Card
                 title="Ticket Average"
-                value={`$${stats.average_order_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                value={`Rs. ${stats.average_order_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 change="Per checkout average"
                 icon={<ShoppingBag size={24} />}
               />
@@ -366,14 +366,14 @@ export default function EspressoProDashboard() {
                         <span className="w-2.5 h-2.5 bg-coffee-500 rounded-xs" />
                         Loyalty Members
                       </div>
-                      <span className="font-extrabold text-gray-900">${revLoyalty.toFixed(2)}</span>
+                      <span className="font-extrabold text-gray-900">Rs. {revLoyalty.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
                       <div className="flex items-center gap-1.5 font-bold text-gray-600">
                         <span className="w-2.5 h-2.5 bg-slate-200 rounded-xs" />
                         Guest Sales
                       </div>
-                      <span className="font-extrabold text-gray-500">${revGuest.toFixed(2)}</span>
+                      <span className="font-extrabold text-gray-500">Rs. {revGuest.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -436,7 +436,7 @@ export default function EspressoProDashboard() {
                     <div className="relative w-full h-full flex flex-col justify-end">
                       {/* Tooltip on hover */}
                       <div className="absolute left-1/2 -translate-x-1/2 -top-8 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition shadow font-bold shrink-0 pointer-events-none z-10 font-sans">
-                        ${dp.revenue.toFixed(2)}
+                        Rs. {dp.revenue.toFixed(2)}
                       </div>
                       <div
                         className="w-full rounded-t-lg bg-gradient-to-t from-coffee-500 to-coffee-200 group-hover:opacity-85 transition-all duration-300 shadow-xs"
@@ -500,7 +500,7 @@ export default function EspressoProDashboard() {
                             </span>
                           </td>
                           <td className="px-4 py-4 font-bold text-gray-800">{item.loyalty_points} pts</td>
-                          <td className="px-4 py-4 font-bold text-emerald-600">${item.lifetime_spending.toFixed(2)}</td>
+                          <td className="px-4 py-4 font-bold text-emerald-600">Rs. {item.lifetime_spending.toFixed(2)}</td>
                           <td className="px-4 py-4 text-right font-bold text-gray-600">{item.visit_count}</td>
                         </tr>
                       ))
@@ -538,7 +538,7 @@ export default function EspressoProDashboard() {
                       <div className="text-right shrink-0">
                         <p className="font-bold text-xs text-slate-900">{p.quantity_sold} sold</p>
                         <p className="text-[10px] font-bold text-emerald-600 mt-0.5">
-                          +${p.revenue_generated.toFixed(2)}
+                          +Rs. {p.revenue_generated.toFixed(2)}
                         </p>
                       </div>
                     </div>

@@ -65,72 +65,80 @@ async def seed_data():
         category_id=str(cat_hot.id),
         name="Classic Espresso",
         description="Pure, rich double shot of espresso",
-        price=3.00,
+        price=450.00,
         stock_quantity=500,
         low_stock_threshold=20,
+        image_url="https://images.unsplash.com/photo-151097252790b-af4f42d91015?q=80&w=400",
         availability_status=True
     )
     prod_cappuccino = Product(
         category_id=str(cat_hot.id),
         name="Cappuccino",
         description="Espresso balanced with steamed milk and deep layer of foam",
-        price=4.50,
+        price=750.00,
         stock_quantity=300,
         low_stock_threshold=15,
+        image_url="https://images.unsplash.com/photo-1534778101976-62847782c213?q=80&w=400",
         availability_status=True
     )
     prod_latte = Product(
         category_id=str(cat_hot.id),
         name="Caffe Latte",
         description="Double shot of espresso topped with silky microfoam",
-        price=4.75,
+        price=850.00,
         stock_quantity=300,
         low_stock_threshold=15,
+        image_url="https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=400",
         availability_status=True
     )
     prod_iced_latte = Product(
         category_id=str(cat_cold.id),
         name="Iced Caffe Latte",
         description="Chilled double shot of espresso over milk and ice",
-        price=4.95,
+        price=950.00,
         stock_quantity=250,
         low_stock_threshold=15,
+        image_url="https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=400",
         availability_status=True
     )
     prod_caramel_macchiato = Product(
         category_id=str(cat_cold.id),
         name="Iced Caramel Macchiato",
         description="Espresso with vanilla syrup, chilled milk, and caramel drizzle",
-        price=5.50,
+        price=1100.00,
         stock_quantity=200,
         low_stock_threshold=10,
+        image_url="https://images.unsplash.com/photo-1485808191679-5f86510681a2?q=80&w=400",
         availability_status=True
     )
     prod_matcha = Product(
         category_id=str(cat_tea.id),
         name="Iced Matcha Latte",
         description="Premium Japanese matcha whisked with cold milk over ice",
-        price=5.25,
+        price=1050.00,
         stock_quantity=150,
         low_stock_threshold=10,
+        image_url="https://images.unsplash.com/photo-1536256263959-770b48d82b0a?q=80&w=400",
         availability_status=True
     )
     prod_croissant = Product(
         category_id=str(cat_bakery.id),
         name="Butter Croissant",
         description="Flaky, buttery French croissant baked fresh daily",
-        price=3.50,
+        price=550.00,
         stock_quantity=30,  # Bakery has low physical inventory
         low_stock_threshold=5,
+        image_url="https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=400",
         availability_status=True
     )
     prod_muffin = Product(
         category_id=str(cat_bakery.id),
         name="Blueberry Muffin",
         description="Moist bakery muffin bursting with wild blueberries",
-        price=3.25,
+        price=480.00,
         stock_quantity=20,
         low_stock_threshold=5,
+        image_url="https://images.unsplash.com/photo-1607958996333-41aef7caefaa?q=80&w=400",
         availability_status=True
     )
     db.add_all([
@@ -170,9 +178,9 @@ async def seed_data():
         expiry_date=datetime.now(timezone.utc) + timedelta(days=365)
     )
     cp2 = Coupon(
-        code="COFFEE5",
+        code="COFFEE200",
         discount_type="fixed",
-        discount_value=5.00,
+        discount_value=200.00,
         active=True,
         expiry_date=datetime.now(timezone.utc) + timedelta(days=365)
     )
@@ -272,10 +280,10 @@ async def seed_data():
             amount_paid = total
             if payment_method == "cash":
                 bill = float(total)
-                if bill < 5.0: bill = 5.0
-                elif bill < 10.0: bill = 10.0
-                elif bill < 20.0: bill = 20.0
-                elif bill < 50.0: bill = 50.0
+                if bill < 100.0: bill = 100.0
+                elif bill < 500.0: bill = 500.0
+                elif bill < 1000.0: bill = 1000.0
+                elif bill < 5000.0: bill = 5000.0
                 amount_paid = Decimal(str(bill)).quantize(Decimal("0.01"))
                 change_amount = amount_paid - total
                 

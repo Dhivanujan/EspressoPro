@@ -437,7 +437,7 @@ export default function MenuManagementPage() {
                         )}
 
                         <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-coffee-500 shadow-sm">
-                          ${product.price.toFixed(2)}
+                          Rs. {product.price.toFixed(2)}
                         </div>
                       </div>
 
@@ -538,7 +538,7 @@ export default function MenuManagementPage() {
                           <p className="text-2xl font-black text-gray-900">
                             {coupon.discount_type === "percentage" 
                               ? `${coupon.discount_value}% OFF` 
-                              : `$${Number(coupon.discount_value).toFixed(2)} OFF`}
+                              : `Rs. ${Number(coupon.discount_value).toFixed(2)} OFF`}
                           </p>
                           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
                             {coupon.discount_type} discount
@@ -633,7 +633,7 @@ export default function MenuManagementPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">Price ($)</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Price (LKR)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -867,7 +867,7 @@ export default function MenuManagementPage() {
                     className="w-full text-sm rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:border-coffee-500"
                   >
                     <option value="percentage">Percentage (%)</option>
-                    <option value="fixed">Fixed Cash ($)</option>
+                    <option value="fixed">Fixed Cash (LKR)</option>
                   </select>
                 </div>
 

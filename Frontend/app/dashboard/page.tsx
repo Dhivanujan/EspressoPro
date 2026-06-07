@@ -356,7 +356,7 @@ export default function DashboardPage() {
         // Sum split balances
         const sumSplitsPaid = cashVal + cardVal + qrVal + pointsVal;
         if (sumSplitsPaid < total) {
-          toast.error(`Split payments sum of $${sumSplitsPaid.toFixed(2)} is less than total $${total.toFixed(2)}`);
+          toast.error(`Split payments sum of Rs. ${sumSplitsPaid.toFixed(2)} is less than total Rs. ${total.toFixed(2)}`);
           setCheckoutLoading(false);
           return;
         }
@@ -521,12 +521,12 @@ export default function DashboardPage() {
                       {item.product.name}
                     </h3>
                     <span className="font-bold text-sm shrink-0">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      Rs. {(item.product.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
 
                   <p className="text-xs text-gray-400 mb-2.5">
-                    ${item.product.price.toFixed(2)} each
+                    Rs. {item.product.price.toFixed(2)} each
                   </p>
 
                   <div className="flex items-center gap-3.5">
@@ -638,25 +638,25 @@ export default function DashboardPage() {
           <div className="mb-5 space-y-2">
             <div className="flex justify-between text-sm text-gray-500">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>Rs. {subtotal.toFixed(2)}</span>
             </div>
 
             {discount > 0 && (
               <div className="flex justify-between text-sm text-amber-600 font-bold animate-scale-up">
                 <span>Discount</span>
-                <span>-${discount.toFixed(2)}</span>
+                <span>-Rs. {discount.toFixed(2)}</span>
               </div>
             )}
 
             <div className="flex justify-between text-sm text-gray-500">
               <span>Tax (10%)</span>
-              <span>${tax.toFixed(2)}</span>
+              <span>Rs. {tax.toFixed(2)}</span>
             </div>
 
             <div className="flex justify-between pt-2 border-t border-gray-100">
               <span className="text-base font-extrabold text-coffee-950">Total</span>
               <span className="text-xl font-extrabold text-coffee-500">
-                ${total.toFixed(2)}
+                Rs. {total.toFixed(2)}
               </span>
             </div>
           </div>
@@ -678,7 +678,7 @@ export default function DashboardPage() {
                 <div className="p-3 border-t border-dashed border-gray-200 bg-white space-y-2.5 animate-scale-up">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase">Cash Amount ($)</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Cash Amount (LKR)</label>
                       <input
                         type="number"
                         placeholder="0.00"
@@ -688,7 +688,7 @@ export default function DashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase">Card Amount ($)</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Card Amount (LKR)</label>
                       <input
                         type="number"
                         placeholder="0.00"
@@ -701,7 +701,7 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase">QR Amount ($)</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">QR Amount (LKR)</label>
                       <input
                         type="number"
                         placeholder="0.00"
@@ -711,7 +711,7 @@ export default function DashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase">Points Value ($)</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Points Value (LKR)</label>
                       <input
                         type="number"
                         placeholder="0.00"
@@ -735,13 +735,13 @@ export default function DashboardPage() {
 
                   <div className="flex justify-between items-center text-xs pt-1.5 border-t border-gray-100">
                     <span className="font-semibold text-gray-400">Total Configured:</span>
-                    <span className="font-bold text-gray-700">${totalSplits.toFixed(2)}</span>
+                    <span className="font-bold text-gray-700">Rs. {totalSplits.toFixed(2)}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-semibold text-gray-400">Remaining to Cover:</span>
                     <span className={`font-bold ${remainingSplit > 0 ? "text-red-500 animate-pulse" : "text-emerald-600 font-extrabold"}`}>
-                      ${remainingSplit.toFixed(2)}
+                      Rs. {remainingSplit.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -791,7 +791,7 @@ export default function DashboardPage() {
                 ) : (
                   <>
                     <CreditCard size={18} />
-                    Checkout Total: ${total.toFixed(2)}
+                    Checkout Total: Rs. {total.toFixed(2)}
                   </>
                 )}
               </button>
@@ -808,7 +808,7 @@ export default function DashboardPage() {
                   Processing Splits...
                 </>
               ) : remainingSplit > 0.01 ? (
-                <>Configure Remaining (${remainingSplit.toFixed(2)})</>
+                <>Configure Remaining (Rs. {remainingSplit.toFixed(2)})</>
               ) : (
                 <>
                   <CheckCircle2 size={18} className="text-white" />
@@ -947,7 +947,7 @@ export default function DashboardPage() {
                     )}
 
                     <div className="absolute right-3 top-3 rounded-full bg-white/95 backdrop-blur px-3 py-1 text-sm font-bold text-coffee-500 shadow-sm">
-                      ${product.price.toFixed(2)}
+                      Rs. {product.price.toFixed(2)}
                     </div>
                   </div>
 
@@ -1081,9 +1081,9 @@ export default function DashboardPage() {
                   <div key={idx} className="flex justify-between text-[11px]">
                     <div className="truncate max-w-[200px]">
                       <span>{item.quantity}x {item.product.name}</span>
-                      <p className="text-[9px] text-gray-500 pl-4">${item.product.price.toFixed(2)} each</p>
+                      <p className="text-[9px] text-gray-500 pl-4">Rs. {item.product.price.toFixed(2)} each</p>
                     </div>
-                    <span className="font-semibold text-black">${(item.product.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-semibold text-black">Rs. {(item.product.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -1094,24 +1094,24 @@ export default function DashboardPage() {
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${receiptData.subtotal.toFixed(2)}</span>
+                  <span>Rs. {receiptData.subtotal.toFixed(2)}</span>
                 </div>
                 
                 {receiptData.discount > 0 && (
                   <div className="flex justify-between text-amber-700 font-semibold">
                     <span>Discount ({receiptData.couponCode})</span>
-                    <span>-${receiptData.discount.toFixed(2)}</span>
+                    <span>-Rs. {receiptData.discount.toFixed(2)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between">
                   <span>VAT/Tax (10%)</span>
-                  <span>${receiptData.tax.toFixed(2)}</span>
+                  <span>Rs. {receiptData.tax.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between font-extrabold text-black text-sm pt-1 border-t border-dotted">
                   <span>TOTAL</span>
-                  <span>${receiptData.total.toFixed(2)}</span>
+                  <span>Rs. {receiptData.total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -1119,11 +1119,11 @@ export default function DashboardPage() {
                 <div className="space-y-1 text-[10px] text-gray-600 pt-3 mt-2 border-t border-dashed">
                   <div className="flex justify-between">
                     <span>CASH TENDERED:</span>
-                    <span>${receiptData.amountPaid.toFixed(2)}</span>
+                    <span>Rs. {receiptData.amountPaid.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-black font-bold">
                     <span>CHANGE DUE:</span>
-                    <span>${receiptData.changeAmount.toFixed(2)}</span>
+                    <span>Rs. {receiptData.changeAmount.toFixed(2)}</span>
                   </div>
                 </div>
               )}

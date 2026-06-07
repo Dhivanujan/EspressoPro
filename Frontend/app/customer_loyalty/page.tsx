@@ -254,9 +254,9 @@ export default function CustomerManagementPage() {
       case "Silver":
         return {
           title: "Sweet Pastry Combo deal",
-          description: "Add a fresh chocolate croissant or baked muffin to any hot latte order for only $1.00!",
+          description: "Add a fresh chocolate croissant or baked muffin to any hot latte order for only Rs. 200.00!",
           code: "SILVERCOMBO1",
-          benefit: "$1.00 Pastry add-on"
+          benefit: "Rs. 200.00 Pastry add-on"
         };
       default:
         return {
@@ -381,7 +381,7 @@ export default function CustomerManagementPage() {
                         </td>
 
                         <td className="px-6 py-4.5 font-semibold text-gray-700">
-                          ${Number(customer.lifetime_spending || 0).toFixed(2)}
+                          Rs. {Number(customer.lifetime_spending || 0).toFixed(2)}
                         </td>
 
                         <td className="px-6 py-4.5 font-bold text-gray-800">
@@ -441,7 +441,7 @@ export default function CustomerManagementPage() {
                     <div className="grid grid-cols-2 gap-4.5 pt-4 border-t border-gray-100">
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block">Lifetime Spent</span>
-                        <p className="text-sm font-extrabold text-gray-950 mt-1">${Number(selectedCustomer.lifetime_spending || 0).toFixed(2)}</p>
+                        <p className="text-sm font-extrabold text-gray-950 mt-1">Rs. {Number(selectedCustomer.lifetime_spending || 0).toFixed(2)}</p>
                       </div>
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block">Visit Frequency</span>
@@ -450,7 +450,7 @@ export default function CustomerManagementPage() {
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
                         <span className="text-[8px] font-bold text-gray-400 uppercase tracking-wider block">Average Spend Size</span>
                         <p className="text-sm font-extrabold text-gray-950 mt-1">
-                          ${Number(selectedCustomer.visit_count > 0 ? Number(selectedCustomer.lifetime_spending || 0) / selectedCustomer.visit_count : 0).toFixed(2)}
+                          Rs. {Number(selectedCustomer.visit_count > 0 ? Number(selectedCustomer.lifetime_spending || 0) / selectedCustomer.visit_count : 0).toFixed(2)}
                         </p>
                       </div>
                       <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/50">
