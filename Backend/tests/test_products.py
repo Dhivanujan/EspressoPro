@@ -62,6 +62,21 @@ async def test_category_and_product_flow(client: AsyncClient, test_admin: User, 
     assert products[0]["name"] == "Flat White"
     assert products[0]["price"] == "4.50"
 
+    # 5b. Update Product (Admin only)
+    update_data = {
+        "name": "Flat White Double",
+        "price": 5.50
+    }
+    update_response = await client.put(
+        f"/api/v1/products/{prod_id}",
+        json=update_data,
+        headers=admin_headers
+    )
+    assert update_response.status_code == 200
+    updated_prod = update_response.json()
+    assert updated_prod["name"] == "Flat White Double"
+    assert updated_prod["price"] == "5.50"
+
     # 6. Attempt Delete Product as Cashier (should be Denied)
     delete_response = await client.delete(
         f"/api/v1/products/{prod_id}",

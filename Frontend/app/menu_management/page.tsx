@@ -420,7 +420,7 @@ export default function MenuManagementPage() {
                             src={getProductImageUrl(product.image_url)}
                             alt={product.name}
                             fill
-                            className="object-contain transition duration-300 group-hover:scale-105"
+                            className="object-cover transition duration-300 group-hover:scale-105"
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center bg-amber-50 text-amber-800">
