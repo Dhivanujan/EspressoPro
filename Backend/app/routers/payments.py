@@ -45,7 +45,7 @@ async def get_loyalty_config(db):
             "currency_per_point": 100.0,
             "redemption_value_per_point": 1.0,
             "tier_multipliers": {"Bronze": 1.0, "Silver": 1.1, "Gold": 1.25, "Platinum": 1.5},
-            "tier_thresholds": {"Bronze": 0.0, "Silver": 200.0, "Gold": 500.0, "Platinum": 1000.0},
+            "tier_thresholds": {"Bronze": 0.0, "Silver": 5000.0, "Gold": 15000.0, "Platinum": 40000.0},
             "points_expiry_days": 365,
             "created_at": datetime.now(timezone.utc).replace(tzinfo=None),
             "updated_at": datetime.now(timezone.utc).replace(tzinfo=None)
@@ -101,9 +101,9 @@ async def get_active_campaign_multiplier(db, customer_birthdate: Optional[str] =
 
 # Helper to determine VIP tier
 def determine_tier(spending: Decimal, points: int, thresholds: dict) -> str:
-    p_thresh = thresholds.get("Platinum", 1000.0)
-    g_thresh = thresholds.get("Gold", 500.0)
-    s_thresh = thresholds.get("Silver", 200.0)
+    p_thresh = thresholds.get("Platinum", 40000.0)
+    g_thresh = thresholds.get("Gold", 15000.0)
+    s_thresh = thresholds.get("Silver", 5000.0)
     
     val = float(spending)
     if val >= p_thresh:
@@ -204,6 +204,13 @@ async def process_payment(
     # Deduct points if redeemed
     if points_to_deduct > 0 and customer:
         customer.loyalty_points -= points_to_deduct
+        # Send SMS for redeeming points
+        from app.utils.sms import send_sms_notification
+        send_sms_notification(
+            customer.phone,
+            f"Dear {customer.name}, you successfully redeemed {points_to_deduct} points for a discount of "
+            f"Rs. {points_paid:.2f}! New Balance: {customer.loyalty_points} points."
+        )
         # Insert audit trail for redemption
         redemption_tx = {
             "customer_id": str(customer.id),
@@ -254,6 +261,16 @@ async def process_payment(
                 if new_tier != old_tier:
                     customer.tier = new_tier
                     tier_upgraded = True
+                
+                # Send SMS for earning points
+                from app.utils.sms import send_sms_notification
+                sms_message = (
+                    f"Dear {customer.name}, you earned {points_earned} points on your purchase of "
+                    f"Rs. {gross_paid:.2f} at Daily Grind! New Balance: {customer.loyalty_points} points. Tier: {customer.tier}."
+                )
+                if tier_upgraded:
+                    sms_message += f" Congratulations on upgrading to {customer.tier} tier!"
+                send_sms_notification(customer.phone, sms_message)
                 
                 # Insert audit trail for earn
                 earn_tx = {

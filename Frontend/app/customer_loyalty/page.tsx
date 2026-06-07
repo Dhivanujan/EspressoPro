@@ -108,11 +108,29 @@ export default function CustomerManagementPage() {
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newPhone) return;
+
+    // Validate phone number format for Sri Lankan mobile numbers
+    const cleaned = newPhone.replace(/[^\d+]/g, "");
+    const isValid = /^\+947[0125678]\d{7}$/.test(cleaned) || /^07[0125678]\d{7}$/.test(cleaned) || /^7[0125678]\d{7}$/.test(cleaned) || /^947[0125678]\d{7}$/.test(cleaned);
+    if (!isValid) {
+      toast.error("Please enter a valid Sri Lankan mobile number (e.g., 0771234567).");
+      return;
+    }
+
+    let formattedPhone = cleaned;
+    if (cleaned.startsWith("07")) {
+      formattedPhone = "+94" + cleaned.slice(1);
+    } else if (/^7[0125678]\d{7}$/.test(cleaned)) {
+      formattedPhone = "+94" + cleaned;
+    } else if (cleaned.startsWith("947")) {
+      formattedPhone = "+" + cleaned;
+    }
+
     setModalLoading(true);
     try {
       const added = await apiPost<Customer>("/api/v1/customers", {
         name: newName,
-        phone: newPhone,
+        phone: formattedPhone,
         birthdate: newBirthdate || null,
       });
       setShowAddModal(false);
@@ -174,45 +192,45 @@ export default function CustomerManagementPage() {
       c.phone.includes(searchQuery)
   );
 
-  // VIP Milestone Progress bar computation
-  const renderProgress = (pts: number) => {
+  // VIP Milestone Progress bar computation (based on lifetime spending in LKR)
+  const renderProgress = (spending: number) => {
     let nextTier = "Silver";
     let currentMin = 0;
-    let nextMax = 200;
+    let nextMax = 5000;
     let currentTier = "Bronze";
 
-    if (pts >= 1000) {
+    if (spending >= 40000) {
       currentTier = "Platinum";
       nextTier = "MAX";
-      currentMin = 1000;
-      nextMax = 1000;
-    } else if (pts >= 500) {
+      currentMin = 40000;
+      nextMax = 40000;
+    } else if (spending >= 15000) {
       currentTier = "Gold";
       nextTier = "Platinum";
-      currentMin = 500;
-      nextMax = 1000;
-    } else if (pts >= 200) {
+      currentMin = 15000;
+      nextMax = 40000;
+    } else if (spending >= 5000) {
       currentTier = "Silver";
       nextTier = "Gold";
-      currentMin = 200;
-      nextMax = 500;
+      currentMin = 5000;
+      nextMax = 15000;
     } else {
       currentTier = "Bronze";
       nextTier = "Silver";
       currentMin = 0;
-      nextMax = 200;
+      nextMax = 5000;
     }
 
     const range = nextMax - currentMin;
-    const earnedInRange = pts - currentMin;
+    const earnedInRange = spending - currentMin;
     const progress = range > 0 ? (earnedInRange / range) * 100 : 100;
-    const remaining = nextMax - pts;
+    const remaining = nextMax - spending;
 
     return (
       <div className="space-y-2 mt-4 font-sans bg-gray-50/50 p-4 rounded-xl border border-gray-100 shadow-inner">
         <div className="flex justify-between text-xs font-bold text-gray-500">
           <span>{currentTier}</span>
-          <span className="text-coffee-500">{pts} / {nextMax} pts</span>
+          <span className="text-coffee-500">Rs. {spending.toFixed(2)} / Rs. {nextMax.toFixed(0)}</span>
           <span>{nextTier}</span>
         </div>
         <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -223,7 +241,7 @@ export default function CustomerManagementPage() {
         </div>
         {nextTier !== "MAX" ? (
           <p className="text-[10px] text-gray-400 font-semibold italic text-center mt-1">
-            {remaining} points remaining to unlock {nextTier} status!
+            Rs. {remaining.toFixed(2)} remaining to unlock {nextTier} status!
           </p>
         ) : (
           <p className="text-[10px] text-emerald-600 font-bold text-center mt-1">
@@ -434,7 +452,7 @@ export default function CustomerManagementPage() {
                         {selectedCustomer.loyalty_points || 0}
                         <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Spendable Points</span>
                       </h4>
-                      {renderProgress(selectedCustomer.loyalty_points || 0)}
+                      {renderProgress(Number(selectedCustomer.lifetime_spending) || 0)}
                     </div>
 
                     {/* Visited Analytics Metrics */}

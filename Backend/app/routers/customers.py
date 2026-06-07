@@ -42,7 +42,16 @@ async def register_customer(
     """
     Register a new customer for the loyalty program.
     """
-    res = await db.execute(select(Customer).filter(Customer.phone == customer_in.phone))
+    from app.utils.sms import clean_srilankan_phone, is_valid_srilankan_mobile, send_sms_notification
+
+    if not is_valid_srilankan_mobile(customer_in.phone):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid Sri Lankan mobile number. Must match format 07XXXXXXXX or +947XXXXXXXX."
+        )
+
+    normalized_phone = clean_srilankan_phone(customer_in.phone)
+    res = await db.execute(select(Customer).filter(Customer.phone == normalized_phone))
     if res.scalars().first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -50,6 +59,7 @@ async def register_customer(
         )
         
     payload = customer_in.model_dump()
+    payload["phone"] = normalized_phone
     payload.update({
         "loyalty_points": 0,
         "lifetime_spending": 0.0,
@@ -63,6 +73,14 @@ async def register_customer(
     new_cust = await customer_repo.create(db, obj_in=payload)
     await db.commit()
     await db.refresh(new_cust)
+
+    # Send Welcome SMS
+    send_sms_notification(
+        new_cust.phone,
+        f"Welcome to the Daily Grind Loyalty Club, {new_cust.name}! You are registered with phone number "
+        f"{new_cust.phone}. Start earning points on your next coffee visit!"
+    )
+
     return populate_customer_defaults(new_cust)
 
 @router.get("/search", response_model=CustomerResponse)
@@ -125,14 +143,22 @@ async def update_customer(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
         
     if customer_in.phone:
+        from app.utils.sms import clean_srilankan_phone, is_valid_srilankan_mobile
+        if not is_valid_srilankan_mobile(customer_in.phone):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Sri Lankan mobile number. Must match format 07XXXXXXXX or +947XXXXXXXX."
+            )
+        normalized_phone = clean_srilankan_phone(customer_in.phone)
         res = await db.execute(
-            select(Customer).filter(Customer.phone == customer_in.phone, Customer.id != customer_id)
+            select(Customer).filter(Customer.phone == normalized_phone, Customer.id != customer_id)
         )
         if res.scalars().first():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="A customer with this phone number is already registered"
             )
+        customer_in.phone = normalized_phone
             
     updated = await customer_repo.update(db, db_obj=customer, obj_in=customer_in)
     await db.commit()

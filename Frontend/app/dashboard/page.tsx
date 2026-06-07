@@ -311,9 +311,22 @@ export default function DashboardPage() {
     if (!customerPhone) return;
     setCustomerError("");
     setCustomer(null);
+
+    // Normalize phone format for Sri Lankan numbers before searching
+    const cleaned = customerPhone.replace(/[^\d+]/g, "");
+    let formattedPhone = cleaned;
+    if (cleaned.startsWith("07")) {
+      formattedPhone = "+94" + cleaned.slice(1);
+    } else if (/^7[0125678]\d{7}$/.test(cleaned)) {
+      formattedPhone = "+94" + cleaned;
+    } else if (cleaned.startsWith("947")) {
+      formattedPhone = "+" + cleaned;
+    }
+
     try {
-      const found = await apiGet<any>(`/api/v1/customers/search?phone=${encodeURIComponent(customerPhone)}`);
+      const found = await apiGet<any>(`/api/v1/customers/search?phone=${encodeURIComponent(formattedPhone)}`);
       setCustomer(found);
+      setCustomerPhone(formattedPhone);
     } catch (err: any) {
       setCustomerError(err.message || "No customer found with this phone");
     }

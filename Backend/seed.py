@@ -187,8 +187,8 @@ async def seed_data():
     db.add_all([cp1, cp2])
 
     # 8. Seed Loyalty Customers
-    cust_alice = Customer(name="Alice Smith", phone="+15550199", loyalty_points=180)
-    cust_bob = Customer(name="Bob Jones", phone="+15550288", loyalty_points=45)
+    cust_alice = Customer(name="Alice Smith", phone="+94771234567", loyalty_points=180)
+    cust_bob = Customer(name="Bob Jones", phone="+94777654321", loyalty_points=45)
     db.add_all([cust_alice, cust_bob])
     await db.flush()
 
